@@ -1,0 +1,1012 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>銀の羅針盤座｜M's 羅針盤</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;600;800&family=DM+Mono:wght@300;400;500&display=swap');
+
+  :root {
+    --ink: #1a1a2e;
+    --paper: #f5f0e8;
+    --gold: #c9963a;
+    --indigo: #2c3e7a;
+    --pink: #c0547a;
+    --muted: #8a8070;
+    --good: #2d7a4f;
+    --bad: #8b2020;
+    --warn: #7a5c1e;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Shippori Mincho', serif;
+    background: var(--paper);
+    color: var(--ink);
+    min-height: 100vh;
+    padding: 24px 16px 48px;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  /* 和紙テクスチャ風背景 */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(26,26,46,0.04) 40px),
+      repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(26,26,46,0.03) 40px);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    max-width: 480px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ヘッダー */
+  .header {
+    text-align: center;
+    padding: 32px 0 24px;
+    border-bottom: 2px solid var(--ink);
+    margin-bottom: 28px;
+    position: relative;
+  }
+
+  .compass-icon {
+    font-size: 36px;
+    display: block;
+    margin-bottom: 8px;
+    animation: spin-slow 20s linear infinite;
+  }
+
+  @keyframes spin-slow {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  .header-title {
+    font-size: 11px;
+    letter-spacing: 0.25em;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    font-weight: 300;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  .header-main {
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--ink);
+    letter-spacing: 0.05em;
+  }
+
+  /* 今日の日付 */
+  .date-display {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 8px;
+    letter-spacing: 0.1em;
+  }
+
+  /* 今日のカード */
+  .today-card {
+    border: 2px solid var(--ink);
+    padding: 24px 20px;
+    margin-bottom: 20px;
+    position: relative;
+    background: white;
+    animation: fadeUp 0.6s ease both;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .today-card::before {
+    content: '今日';
+    position: absolute;
+    top: -11px;
+    left: 16px;
+    background: var(--ink);
+    color: var(--paper);
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    padding: 2px 10px;
+    font-family: 'DM Mono', monospace;
+  }
+
+  .today-energy {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+
+  .energy-badge {
+    font-size: 40px;
+    line-height: 1;
+    flex-shrink: 0;
+  }
+
+  .energy-text h2 {
+    font-size: 20px;
+    font-weight: 800;
+    line-height: 1.2;
+  }
+
+  .energy-text .energy-sub {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 4px;
+    font-family: 'DM Mono', monospace;
+  }
+
+  .today-message {
+    font-size: 14px;
+    line-height: 1.8;
+    padding: 14px;
+    border-left: 3px solid var(--gold);
+    background: rgba(201,150,58,0.06);
+    color: var(--ink);
+  }
+
+  /* 月間カード */
+  .month-card {
+    border: 1.5px solid var(--ink);
+    padding: 20px;
+    margin-bottom: 16px;
+    background: white;
+    animation: fadeUp 0.6s ease 0.15s both;
+  }
+
+  .card-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+
+  .month-title {
+    font-size: 18px;
+    font-weight: 800;
+    margin-bottom: 6px;
+  }
+
+  .month-policy {
+    font-size: 13px;
+    color: var(--indigo);
+    font-weight: 600;
+    margin-bottom: 14px;
+    padding: 8px 12px;
+    background: rgba(44,62,122,0.06);
+    border-radius: 2px;
+  }
+
+  .week-focus {
+    font-size: 13px;
+    margin-bottom: 8px;
+    padding: 10px 12px;
+    border: 1px solid rgba(26,26,46,0.15);
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+
+  .week-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .week-text {
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  /* アクションリスト */
+  .action-card {
+    border: 1.5px solid var(--ink);
+    padding: 20px;
+    margin-bottom: 16px;
+    background: white;
+    animation: fadeUp 0.6s ease 0.3s both;
+  }
+
+  .action-item {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    margin-bottom: 10px;
+    font-size: 13px;
+    line-height: 1.6;
+  }
+
+  .action-item:last-child { margin-bottom: 0; }
+
+  .action-check {
+    width: 18px;
+    height: 18px;
+    border: 1.5px solid var(--ink);
+    flex-shrink: 0;
+    margin-top: 2px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+    font-size: 11px;
+  }
+
+  .action-check.done {
+    background: var(--good);
+    border-color: var(--good);
+    color: white;
+  }
+
+  /* 重要日カード */
+  .dates-card {
+    border: 1.5px solid var(--ink);
+    padding: 20px;
+    margin-bottom: 16px;
+    background: white;
+    animation: fadeUp 0.6s ease 0.45s both;
+  }
+
+  .date-item {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    margin-bottom: 10px;
+    font-size: 12px;
+    line-height: 1.5;
+  }
+
+  .date-item:last-child { margin-bottom: 0; }
+
+  .date-badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    flex-shrink: 0;
+    min-width: 52px;
+  }
+
+  .badge-good { color: var(--good); }
+  .badge-bad { color: var(--bad); }
+  .badge-best { color: var(--gold); font-weight: 700; }
+
+  /* 大方針 */
+  .vision-card {
+    border: 2px solid var(--indigo);
+    padding: 20px;
+    margin-bottom: 16px;
+    background: var(--indigo);
+    animation: fadeUp 0.6s ease 0.6s both;
+  }
+
+  .vision-text {
+    font-size: 13px;
+    line-height: 2;
+    color: #ffffff;
+    text-align: center;
+  }
+
+  .vision-text strong {
+    font-size: 15px;
+    font-weight: 800;
+    display: block;
+    margin-bottom: 4px;
+    color: #f0e68c;
+  }
+
+  /* ラッキー */
+  .lucky-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 16px;
+    animation: fadeUp 0.6s ease 0.75s both;
+  }
+
+  .lucky-item {
+    border: 1px solid var(--ink);
+    padding: 12px 8px;
+    text-align: center;
+    background: white;
+  }
+
+  .lucky-emoji { font-size: 20px; margin-bottom: 4px; }
+  .lucky-label { font-family: 'DM Mono', monospace; font-size: 9px; color: var(--muted); letter-spacing: 0.1em; margin-bottom: 4px; }
+  .lucky-value { font-size: 11px; font-weight: 600; line-height: 1.3; }
+
+  /* フッター */
+  .footer {
+    text-align: center;
+    padding: 20px 0;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.15em;
+  }
+
+  /* 休み日 */
+  .rest-badge {
+    display: inline-block;
+    background: var(--bad);
+    color: white;
+    font-size: 9px;
+    padding: 1px 6px;
+    font-family: 'DM Mono', monospace;
+    margin-left: 6px;
+    vertical-align: middle;
+  }
+
+  /* 最強日バナー */
+  .best-day-banner {
+    background: var(--gold);
+    color: white;
+    text-align: center;
+    padding: 12px;
+    font-size: 14px;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    margin-bottom: 20px;
+    animation: fadeUp 0.3s ease both, pulse 2s ease-in-out 1s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.8; }
+  }
+
+  .tag-good { color: var(--good); font-size: 11px; font-family: 'DM Mono', monospace; }
+  .tag-best { color: var(--gold); font-size: 12px; font-family: 'DM Mono', monospace; font-weight: 700; }
+  .tag-bad { color: var(--bad); font-size: 11px; font-family: 'DM Mono', monospace; }
+
+  /* タスク管理 */
+  .task-card {
+    border: 2px solid var(--indigo);
+    padding: 20px;
+    margin-bottom: 16px;
+    background: white;
+    animation: fadeUp 0.6s ease 0.35s both;
+  }
+
+  .task-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+  }
+
+  .task-add-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+
+  .task-input {
+    flex: 1;
+    border: 1.5px solid rgba(26,26,46,0.3);
+    padding: 8px 12px;
+    font-family: 'Shippori Mincho', serif;
+    font-size: 13px;
+    color: var(--ink);
+    background: var(--paper);
+    outline: none;
+    border-radius: 0;
+  }
+
+  .task-input:focus {
+    border-color: var(--indigo);
+  }
+
+  .task-add-btn {
+    background: var(--indigo);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    cursor: pointer;
+    letter-spacing: 0.05em;
+    transition: opacity 0.2s;
+  }
+
+  .task-add-btn:hover { opacity: 0.85; }
+
+  .task-list-item {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(26,26,46,0.08);
+  }
+
+  .task-list-item:last-child { border-bottom: none; }
+
+  .task-cb {
+    width: 18px;
+    height: 18px;
+    border: 1.5px solid var(--ink);
+    flex-shrink: 0;
+    margin-top: 2px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    transition: all 0.2s;
+  }
+
+  .task-cb.done {
+    background: var(--good);
+    border-color: var(--good);
+    color: white;
+  }
+
+  .task-text {
+    flex: 1;
+    font-size: 13px;
+    line-height: 1.6;
+    padding-top: 1px;
+    transition: color 0.2s;
+  }
+
+  .task-text.done {
+    color: var(--muted);
+    text-decoration: line-through;
+  }
+
+  /* ◎日タスク提案バナー */
+  .task-suggest-banner {
+    background: linear-gradient(135deg, var(--gold), #e8b04a);
+    color: white;
+    padding: 14px 16px;
+    margin-bottom: 14px;
+    border-radius: 2px;
+  }
+
+  .task-suggest-banner .suggest-title {
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    margin-bottom: 8px;
+  }
+
+  .task-suggest-item {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    font-size: 12px;
+    padding: 4px 0;
+    cursor: pointer;
+    opacity: 0.95;
+  }
+
+  .task-suggest-item:hover { opacity: 1; text-decoration: underline; }
+
+  .task-priority-star {
+    color: var(--gold);
+    font-size: 13px;
+    flex-shrink: 0;
+  }
+
+  .task-priority-star.on { filter: none; }
+
+  .task-del-btn {
+    background: none;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 14px;
+    padding: 0 2px;
+    line-height: 1;
+    flex-shrink: 0;
+    margin-top: 2px;
+    transition: color 0.2s;
+  }
+
+  .task-del-btn:hover { color: var(--bad); }
+
+  .task-count {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+  }
+
+  .task-empty {
+    font-size: 12px;
+    color: var(--muted);
+    text-align: center;
+    padding: 16px 0;
+    font-style: italic;
+  }
+
+  .task-priority-toggle {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    padding: 0;
+    flex-shrink: 0;
+    margin-top: 1px;
+    line-height: 1;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header class="header">
+    <span class="compass-icon">🧭</span>
+    <div class="header-title">銀の羅針盤座 · 2026</div>
+    <div class="header-main">M's 羅針盤</div>
+    <div class="date-display" id="dateDisplay"></div>
+  </header>
+
+  <!-- 最強日バナー（対象日のみ表示） -->
+  <div class="best-day-banner" id="bestDayBanner" style="display:none;"></div>
+
+  <!-- 今日 -->
+  <div class="today-card" id="todayCard">
+    <div class="today-energy">
+      <div class="energy-badge" id="energyBadge">—</div>
+      <div class="energy-text">
+        <h2 id="energyTitle">読み込み中...</h2>
+        <div class="energy-sub" id="energySub"></div>
+      </div>
+    </div>
+    <div class="today-message" id="todayMessage"></div>
+  </div>
+
+  <!-- 今月 -->
+  <div class="month-card" id="monthCard">
+    <div class="card-label">THIS MONTH</div>
+    <div class="month-title" id="monthTitle"></div>
+    <div class="month-policy" id="monthPolicy"></div>
+    <div id="weekFocus"></div>
+  </div>
+
+  <!-- 今週のタスク -->
+  <div class="task-card">
+    <div class="task-card-header">
+      <div class="card-label" style="margin-bottom:0;">MY TASKS · THIS WEEK</div>
+      <span class="task-count" id="taskCount"></span>
+    </div>
+    <div id="taskSuggestBanner"></div>
+    <div class="task-add-row">
+      <input class="task-input" id="taskInput" type="text" placeholder="タスクを追加…" maxlength="60"
+        onkeydown="if(event.key==='Enter') addTask()">
+      <button class="task-add-btn" onclick="addTask()">追加</button>
+    </div>
+    <div id="taskList"></div>
+  </div>
+
+  <!-- 今月のアクション -->
+  <div class="action-card">
+    <div class="card-label">THIS MONTH'S ACTIONS</div>
+    <div id="actionList"></div>
+  </div>
+
+  <!-- 今月の重要日 -->
+  <div class="dates-card">
+    <div class="card-label">KEY DATES THIS MONTH</div>
+    <div id="keyDates"></div>
+  </div>
+
+  <!-- 大方針 -->
+  <div class="vision-card">
+    <div class="card-label">GRAND VISION</div>
+    <div class="vision-text">
+      <strong>3月：整える・確認する<br>4月：休む・仕込む<br>5月：放つ・楽しむ</strong>
+      2027年の幸運・2029年の大成果は<br>今年の準備の年でどう過ごすかで決まる。
+    </div>
+  </div>
+
+  <!-- ラッキー -->
+  <div class="lucky-row">
+    <div class="lucky-item">
+      <div class="lucky-emoji">🎨</div>
+      <div class="lucky-label">COLOR</div>
+      <div class="lucky-value">藍色<br>濃いピンク</div>
+    </div>
+    <div class="lucky-item">
+      <div class="lucky-emoji">🍱</div>
+      <div class="lucky-label">FOOD</div>
+      <div class="lucky-value">海鮮丼<br>きなこ餅</div>
+    </div>
+    <div class="lucky-item">
+      <div class="lucky-emoji">🎡</div>
+      <div class="lucky-label">SPOT</div>
+      <div class="lucky-value">演芸場<br>遊園地</div>
+    </div>
+  </div>
+
+  <div class="footer">last updated · today · 銀の羅針盤座</div>
+</div>
+
+<script>
+const DATA = {
+  3: {
+    title: "3月｜健康管理の月",
+    policy: "「ミスを防ぎながら、人との繋がりを広げる。仕込みの月。」",
+    weeks: [
+      { range: "3/1〜7", label: "第1週", focus: "人間関係の整理・ネガティブ発言を封印" },
+      { range: "3/8〜15", label: "第2週", focus: "確認作業徹底・コンテンツ素材の収集" },
+      { range: "3/16〜22", label: "第3週", focus: "情報収集・企画立案・長期目標の設定" },
+      { range: "3/23〜31", label: "第4週", focus: "仕事に集中・下旬は体調管理優先" },
+    ],
+    actions: [
+      "YouTubeのスクリプト・構成を3本分作成",
+      "SwingCheckの次フェーズ仕様の整理（チェックリスト化）",
+      "ローンや大きな契約は先送り",
+      "趣味（ゲーム開発含む）の予算を少し増やしてモチベ維持",
+    ],
+    keyDates: [
+      { date: "3/5(木)", type: "good", mark: "◯", text: "新しいチャレンジを宣言する。企画の着手" },
+      { date: "3/16(月)", type: "good", mark: "◯", text: "YouTube・SwingCheck関連の情報収集・調査に全振り" },
+      { date: "3/22(日)", type: "good", mark: "◯", text: "継続してきたことの棚卸し。実績整理・ポートフォリオ更新" },
+      { date: "3/23(月)", type: "good", mark: "◯", text: "仕事集中の最良日。重要タスクをここに集中投下" },
+      { date: "3/1(日)", type: "bad", mark: "▼", text: "SNS投稿・重要発言は控える" },
+      { date: "3/13(金)", type: "bad", mark: "▼", text: "余計な発言・感情的な反応に注意" },
+      { date: "3/14(土)", type: "bad", mark: "×", text: "予定通りに進まないことが多い。流れに乗るだけでOK" },
+      { date: "3/25(水)", type: "bad", mark: "▼", text: "焦り禁物。「トラブルは当然」と構える" },
+    ],
+    days: {
+      5:  { type: "good", emoji: "✅", title: "チャレンジ宣言日", sub: "◯", msg: "新しいチャレンジを宣言する日。企画の着手に最適。勇気を出して一歩踏み出して。" },
+      16: { type: "good", emoji: "🔍", title: "全振り調査日", sub: "◯", msg: "YouTube・SwingCheck関連の情報収集・調査に全振りする日。インプットに集中して。" },
+      22: { type: "good", emoji: "📋", title: "棚卸し日", sub: "◯", msg: "継続してきたことを棚卸しする日。実績整理・ポートフォリオ更新を。" },
+      23: { type: "good", emoji: "⚡", title: "重要タスク集中日", sub: "◯ 最良日", msg: "仕事に集中する今月の最良日。重要タスクをここに集中投下してください。" },
+      1:  { type: "bad",  emoji: "🔇", title: "静かに過ごす日", sub: "▼", msg: "SNS投稿・重要発言は控える日。インプットのみ、発言はなるべく避けて。" },
+      13: { type: "bad",  emoji: "🤐", title: "言葉に注意", sub: "▼", msg: "余計な発言・感情的な反応に注意。聞き役に徹する日。" },
+      14: { type: "bad",  emoji: "🌊", title: "流れに乗る日", sub: "×", msg: "予定通りに進まないことが多い日。焦らず流れに身を任せるだけでOK。" },
+      25: { type: "bad",  emoji: "🛡️", title: "守りの日", sub: "▼", msg: "焦り禁物。「トラブルは当然」と構えて、落ち着いて対処して。" },
+    },
+    defaultDay: { type: "normal", emoji: "🌸", title: "通常運転日", sub: "普通", msg: "今日は特別な重要日ではありません。今月の方針「ミスを防ぎながら人との繋がりを広げる」を意識して過ごして。" }
+  },
+  4: {
+    title: "4月｜リフレッシュの月",
+    policy: "「無理しない。スピード優先で動いてあとから確認。充電月。」",
+    weeks: [
+      { range: "4/1〜7", label: "第1週", focus: "ペースを落とす・残業ゼロ宣言" },
+      { range: "4/8〜15", label: "第2週", focus: "インプット強化・新しい情報収集" },
+      { range: "4/16〜22", label: "第3週", focus: "信頼できる人からのアドバイスを吸収" },
+      { range: "4/23〜30", label: "第4週", focus: "体調管理最優先・5月の仕込みを完成させる" },
+    ],
+    actions: [
+      "残業・深夜作業を意識的に減らす",
+      "5月公開予定のコンテンツを4月中に完成させて「仕込み完了」状態にする",
+      "温泉・マッサージ・高級ランチなど体への投資をする（金運的にも吉）",
+      "Claude Code・MCPなどのインプット記事は今月読み溜めておく",
+    ],
+    keyDates: [
+      { date: "4/3(金)", type: "good", mark: "◯", text: "周囲への貢献意識を持って動く日" },
+      { date: "4/13(月)", type: "good", mark: "◇", text: "魅力・能力が評価される日。SNSへの積極的な投稿◎" },
+      { date: "4/27(月)", type: "good", mark: "◯", text: "長い付き合いの人からアドバイスをもらう。メンターに連絡" },
+      { date: "4/28(火)", type: "good", mark: "◯", text: "仕事運の最良日。アイデア発言・提案を積極的に" },
+      { date: "4/6(月)", type: "bad", mark: "▼", text: "人間関係のゴタゴタ・イライラに注意。早めに帰宅" },
+      { date: "4/7(火)", type: "bad", mark: "×", text: "人間関係のゴタゴタ続き。早めに帰宅" },
+      { date: "4/17(金)", type: "bad", mark: "▽", text: "体力温存。夕方以降の無理な予定を入れない" },
+      { date: "4/18(土)", type: "bad", mark: "▼", text: "体調を崩しやすい。ゆっくり過ごす" },
+      { date: "4/23(木)", type: "bad", mark: "■", text: "疲れのピーク。マスク・早寝・湯船必須" },
+      { date: "4/24(金)", type: "bad", mark: "■", text: "疲れのピーク続き。徹底して休む" },
+      { date: "4/30(木)", type: "bad", mark: "▼", text: "今月の疲れが出る日。予定を入れずにゆっくり" },
+    ],
+    days: {
+      3:  { type: "good", emoji: "🤝", title: "貢献の日", sub: "◯", msg: "支えてくれる人のために動く日。周囲への貢献意識を持って行動して。" },
+      13: { type: "good", emoji: "✨", title: "評価される日", sub: "◇", msg: "魅力・能力が評価される日！SNSへの積極的な投稿がおすすめ。" },
+      27: { type: "good", emoji: "💬", title: "メンター連絡日", sub: "◯", msg: "長い付き合いの人からアドバイスをもらうのに最適。メンターに連絡してみて。" },
+      28: { type: "good", emoji: "💡", title: "アイデア発言日", sub: "◯ 最良日", msg: "仕事運の最良日！アイデア発言・提案を積極的に出して。" },
+      6:  { type: "bad",  emoji: "😤", title: "衝突注意日", sub: "▼", msg: "人間関係のゴタゴタ・イライラに注意。今日は早めに帰宅して。" },
+      7:  { type: "bad",  emoji: "🏃", title: "早退奨励日", sub: "×", msg: "人間関係のトラブルが続きやすい。なるべく早く帰宅。" },
+      17: { type: "bad",  emoji: "🔋", title: "体力温存日", sub: "▽", msg: "夕方以降の無理な予定を入れないこと。体力を温存して。" },
+      18: { type: "bad",  emoji: "🛏️", title: "休養日", sub: "▼", msg: "体調を崩しやすい日。ゆっくり過ごして、無理は絶対しないで。" },
+      23: { type: "bad",  emoji: "😷", title: "疲れのピーク", sub: "■", msg: "疲れのピーク。マスク・早寝・湯船が必須。体を大切に。" },
+      24: { type: "bad",  emoji: "💤", title: "疲れのピーク②", sub: "■", msg: "疲れのピーク2日目。今日も無理せず徹底して休んで。" },
+      30: { type: "bad",  emoji: "🛌", title: "月末充電日", sub: "▼", msg: "今月の疲れが出る日。予定を入れずにゆっくり過ごして。" },
+    },
+    defaultDay: { type: "normal", emoji: "🌷", title: "充電日", sub: "普通", msg: "充電の月・4月。今日は無理せず、インプットや体のケアを意識して過ごして。" }
+  },
+  5: {
+    title: "5月｜解放の月",
+    policy: "「楽しむことが最大の戦略。仕込んだものを全部出す。」",
+    weeks: [
+      { range: "5/1〜7", label: "第1週", focus: "不要なものを手放す・動き始める" },
+      { range: "5/8〜15", label: "第2週", focus: "最強週間。発信・公開・出会いを全開" },
+      { range: "5/16〜22", label: "第3週", focus: "チャンスを掴む。人脈・評価が広がる" },
+      { range: "5/23〜31", label: "第4週", focus: "楽しみながら締める・次の準備へ" },
+    ],
+    actions: [
+      "5/9〜10の◎◎に動画公開を合わせる（4月に仕込んだものをここで出す）",
+      "5/21〜22の◎◎にビジネス的な発信・提案・コラボ交渉を集中させる",
+      "旅行・ライブ・イベントに行く（解放の月の最大の開運行動）",
+      "大胆な服・カラオケで発散（声を出すことがストレス解消に直結）",
+      "直感を信じてお金を使う（体験・旅行への投資が未来のヒントになる）",
+    ],
+    keyDates: [
+      { date: "5/9(土)", type: "best", mark: "◎", text: "🌟 YouTube動画公開・SwingCheck発信の最強日" },
+      { date: "5/10(日)", type: "best", mark: "◎", text: "🌟 本屋へ行く・今必要な情報が見つかる" },
+      { date: "5/21(木)", type: "best", mark: "◎", text: "🌟 仕事関係者への発信・提案・コラボ打診" },
+      { date: "5/22(金)", type: "best", mark: "◎", text: "🌟 具体的な数値目標を宣言する" },
+      { date: "5/7(木)", type: "good", mark: "◇", text: "魅力UP。SNSプロフィール更新◎" },
+      { date: "5/15(金)", type: "good", mark: "◯", text: "温めていたアイデアを周囲に伝える" },
+      { date: "5/16(土)", type: "good", mark: "◯", text: "「はじめて」の場所・体験に飛び込む" },
+      { date: "5/27(水)", type: "good", mark: "◯", text: "アイデアが広がる・サポート役で評価UP" },
+      { date: "5/28(木)", type: "good", mark: "◯", text: "アイデアが広がる・サポート役で評価UP" },
+      { date: "5/6(水)", type: "bad", mark: "■", text: "少食・胃腸を休める。動き回らない" },
+      { date: "5/12(火)", type: "bad", mark: "▼", text: "空気読めない発言が出やすい。聞き役に徹する" },
+      { date: "5/25(月)", type: "bad", mark: "×", text: "周囲と噛み合わない日。自分から引き起こさない" },
+    ],
+    days: {
+      9:  { type: "best", emoji: "🌟", title: "最強発信日 ①", sub: "◎◎ 最重要", msg: "YouTube動画公開・SwingCheck発信の最強日！何でも前向きに受け止められる幸運日。全力で！" },
+      10: { type: "best", emoji: "🌟", title: "最強発信日 ②", sub: "◎◎ 連続", msg: "◎連続2日目。本屋へ行くと今必要な情報が見つかる日。勢いを活かして動いて！" },
+      21: { type: "best", emoji: "🌟", title: "信頼構築日", sub: "◎ 最重要", msg: "頼られる・信頼を築く日。仕事関係者への発信・提案・コラボ打診を今日に集中させて。" },
+      22: { type: "best", emoji: "🌟", title: "結果が出る日", sub: "◎ 最重要", msg: "真面目に取り組んできた人に結果が出る日。具体的な数値目標を宣言して！" },
+      7:  { type: "good", emoji: "💅", title: "魅力UP日", sub: "◇", msg: "魅力が上がる日。服装・見た目を意識して。SNSプロフィール更新もおすすめ。" },
+      15: { type: "good", emoji: "💬", title: "アイデア発信日", sub: "◯", msg: "温めていたアイデアを周囲に伝える日。いいアドバイスが返ってくるはず。" },
+      16: { type: "good", emoji: "🚀", title: "はじめての日", sub: "◯", msg: "「はじめて」の場所・体験に飛び込む日。新しいことに積極的に。" },
+      27: { type: "good", emoji: "💡", title: "アイデア日", sub: "◯", msg: "アイデアが広がる日。サポート役に徹することで評価がUPする。" },
+      28: { type: "good", emoji: "💡", title: "サポート評価日", sub: "◯", msg: "昨日に続きアイデアとサポートで評価される日。積極的に貢献して。" },
+      6:  { type: "bad",  emoji: "🫙", title: "胃腸休養日", sub: "■", msg: "少食・胃腸を休める日。今日は動き回らず、体に優しく過ごして。" },
+      12: { type: "bad",  emoji: "🤫", title: "沈黙の日", sub: "▼", msg: "空気読めない発言が出やすい日。聞き役に徹して、発言は最低限に。" },
+      25: { type: "bad",  emoji: "🧘", title: "噛み合わない日", sub: "×", msg: "周囲と噛み合わない日。自分から火種を起こさないよう、静かに過ごして。" },
+    },
+    defaultDay: { type: "normal", emoji: "🌺", title: "解放の日", sub: "普通", msg: "解放の月・5月。今日も「楽しむことが最大の戦略」。4月に仕込んだことを少しずつ出していって。" }
+  }
+};
+
+function getWeekNumber(month, day) {
+  if (day <= 7) return 0;
+  if (day <= 15) return 1;
+  if (day <= 22) return 2;
+  return 3;
+}
+
+function render() {
+  const now = new Date();
+  const month = now.getMonth() + 1;
+  const day = now.getDate();
+  const weekdays = ['日', '月', '火', '水', '木', '金', '土'];
+  const wd = weekdays[now.getDay()];
+
+  document.getElementById('dateDisplay').textContent =
+    `${now.getFullYear()}年${month}月${day}日（${wd}）`;
+
+  const mdata = DATA[month];
+  if (!mdata) {
+    document.getElementById('energyTitle').textContent = '対象外の月です';
+    document.getElementById('todayMessage').textContent = '3〜5月の期間にご利用ください。';
+    document.getElementById('monthTitle').textContent = '';
+    document.getElementById('monthPolicy').textContent = '';
+    return;
+  }
+
+  // 今日の情報
+  const todayData = mdata.days[day] || mdata.defaultDay;
+  document.getElementById('energyBadge').textContent = todayData.emoji;
+  document.getElementById('energyTitle').textContent = todayData.title;
+  document.getElementById('energySub').innerHTML =
+    `<span class="${todayData.type === 'best' ? 'tag-best' : todayData.type === 'good' ? 'tag-good' : todayData.type === 'bad' ? 'tag-bad' : ''}">${todayData.sub}</span>`;
+  document.getElementById('todayMessage').textContent = todayData.msg;
+
+  // 最強日バナー
+  const banner = document.getElementById('bestDayBanner');
+  if (todayData.type === 'best') {
+    banner.style.display = 'block';
+    banner.textContent = '🌟 今日は最強の◎日！全力で動いてください 🌟';
+  }
+
+  // 今月
+  document.getElementById('monthTitle').textContent = mdata.title;
+  document.getElementById('monthPolicy').textContent = mdata.policy;
+
+  // 今週のフォーカス（ハイライト付き）
+  const weekIdx = getWeekNumber(month, day);
+  const weekHtml = mdata.weeks.map((w, i) => `
+    <div class="week-focus" style="${i === weekIdx ? 'border-color: var(--indigo); background: rgba(44,62,122,0.05);' : ''}">
+      <span class="week-label">${w.label}<br>${w.range}</span>
+      <span class="week-text">${i === weekIdx ? '<strong>' + w.focus + '</strong>' : w.focus}</span>
+    </div>
+  `).join('');
+  document.getElementById('weekFocus').innerHTML = weekHtml;
+
+  // アクション
+  const actionHtml = mdata.actions.map((a, i) => `
+    <div class="action-item">
+      <div class="action-check" id="check-${i}" onclick="toggleCheck(${i})"></div>
+      <span>${a}</span>
+    </div>
+  `).join('');
+  document.getElementById('actionList').innerHTML = actionHtml;
+
+  // チェック状態の復元
+  const saved = JSON.parse(localStorage.getItem(`checks-${month}`) || '{}');
+  Object.keys(saved).forEach(i => {
+    if (saved[i]) {
+      const el = document.getElementById(`check-${i}`);
+      if (el) { el.classList.add('done'); el.textContent = '✓'; }
+    }
+  });
+
+  // 重要日
+  const goodDates = mdata.keyDates.filter(d => d.type !== 'bad');
+  const badDates = mdata.keyDates.filter(d => d.type === 'bad');
+  const datesHtml =
+    '<div style="margin-bottom:12px;"><div class="card-label" style="margin-bottom:8px;">✅ 動くべき日</div>' +
+    goodDates.map(d => `
+      <div class="date-item">
+        <span class="date-badge ${d.type === 'best' ? 'badge-best' : 'badge-good'}">${d.mark} ${d.date}</span>
+        <span>${d.text}</span>
+      </div>
+    `).join('') +
+    '</div><div><div class="card-label" style="margin-bottom:8px;">⚠️ 守りに入る日</div>' +
+    badDates.map(d => `
+      <div class="date-item">
+        <span class="date-badge badge-bad">${d.mark} ${d.date}</span>
+        <span>${d.text}</span>
+      </div>
+    `).join('') + '</div>';
+  document.getElementById('keyDates').innerHTML = datesHtml;
+}
+
+function toggleCheck(i) {
+  const now = new Date();
+  const month = now.getMonth() + 1;
+  const key = `checks-${month}`;
+  const saved = JSON.parse(localStorage.getItem(key) || '{}');
+  const el = document.getElementById(`check-${i}`);
+  if (el.classList.contains('done')) {
+    el.classList.remove('done');
+    el.textContent = '';
+    saved[i] = false;
+  } else {
+    el.classList.add('done');
+    el.textContent = '✓';
+    saved[i] = true;
+  }
+  localStorage.setItem(key, JSON.stringify(saved));
+}
+
+// ======= タスク管理 =======
+const TASK_KEY = 'mytasks_v1';
+
+function loadTasks() {
+  try { return JSON.parse(localStorage.getItem(TASK_KEY)) || []; }
+  catch { return []; }
+}
+
+function saveTasks(tasks) {
+  localStorage.setItem(TASK_KEY, JSON.stringify(tasks));
+}
+
+function addTask() {
+  const input = document.getElementById('taskInput');
+  const text = input.value.trim();
+  if (!text) return;
+  const tasks = loadTasks();
+  if (tasks.length >= 10) {
+    input.placeholder = 'タスクは10個までです';
+    return;
+  }
+  tasks.push({ id: Date.now(), text, done: false, priority: false });
+  saveTasks(tasks);
+  input.value = '';
+  renderTasks();
+}
+
+function toggleTask(id) {
+  const tasks = loadTasks();
+  const t = tasks.find(t => t.id === id);
+  if (t) t.done = !t.done;
+  saveTasks(tasks);
+  renderTasks();
+}
+
+function deleteTask(id) {
+  const tasks = loadTasks().filter(t => t.id !== id);
+  saveTasks(tasks);
+  renderTasks();
+}
+
+function togglePriority(id) {
+  const tasks = loadTasks();
+  const t = tasks.find(t => t.id === id);
+  if (t) t.priority = !t.priority;
+  saveTasks(tasks);
+  renderTasks();
+}
+
+function renderTasks() {
+  const tasks = loadTasks();
+  const now = new Date();
+  const month = now.getMonth() + 1;
+  const day = now.getDate();
+  const mdata = DATA[month];
+  const todayData = mdata ? (mdata.days[day] || mdata.defaultDay) : null;
+  const isBestDay = todayData && todayData.type === 'best';
+  const isGoodDay = todayData && (todayData.type === 'best' || todayData.type === 'good');
+
+  // カウント
+  const done = tasks.filter(t => t.done).length;
+  document.getElementById('taskCount').textContent =
+    tasks.length > 0 ? `${done}/${tasks.length} 完了` : '';
+
+  // ◎日バナー
+  const bannerEl = document.getElementById('taskSuggestBanner');
+  if (isBestDay && tasks.length > 0) {
+    const priorityTasks = tasks.filter(t => t.priority && !t.done);
+    const undone = tasks.filter(t => !t.done);
+    const suggested = priorityTasks.length > 0 ? priorityTasks : undone.slice(0, 3);
+    if (suggested.length > 0) {
+      bannerEl.innerHTML = `
+        <div class="task-suggest-banner">
+          <div class="suggest-title">🌟 今日は最強の◎日！このタスクを優先して動いて</div>
+          ${suggested.map(t => `
+            <div class="task-suggest-item" onclick="toggleTask(${t.id})">
+              <span>▶</span><span>${t.text}</span>
+            </div>
+          `).join('')}
+        </div>`;
+    } else {
+      bannerEl.innerHTML = `<div class="task-suggest-banner"><div class="suggest-title">🌟 今日は最強の◎日！タスクを追加して全力で動こう</div></div>`;
+    }
+  } else if (isGoodDay && tasks.filter(t => t.priority && !t.done).length > 0) {
+    const priorityTasks = tasks.filter(t => t.priority && !t.done);
+    bannerEl.innerHTML = `
+      <div class="task-suggest-banner" style="background: linear-gradient(135deg, var(--good), #3d9962);">
+        <div class="suggest-title">✅ 今日は◯日！優先タスクを片付けよう</div>
+        ${priorityTasks.map(t => `
+          <div class="task-suggest-item" onclick="toggleTask(${t.id})">
+            <span>▶</span><span>${t.text}</span>
+          </div>
+        `).join('')}
+      </div>`;
+  } else {
+    bannerEl.innerHTML = '';
+  }
+
+  // タスクリスト（優先→未完了→完了の順）
+  const sorted = [
+    ...tasks.filter(t => t.priority && !t.done),
+    ...tasks.filter(t => !t.priority && !t.done),
+    ...tasks.filter(t => t.done),
+  ];
+
+  const listEl = document.getElementById('taskList');
+  if (sorted.length === 0) {
+    listEl.innerHTML = '<div class="task-empty">タスクを追加してください</div>';
+    return;
+  }
+
+  listEl.innerHTML = sorted.map(t => `
+    <div class="task-list-item">
+      <button class="task-priority-toggle" onclick="togglePriority(${t.id})" title="優先マーク">
+        ${t.priority ? '⭐' : '☆'}
+      </button>
+      <div class="task-cb ${t.done ? 'done' : ''}" onclick="toggleTask(${t.id})">${t.done ? '✓' : ''}</div>
+      <span class="task-text ${t.done ? 'done' : ''}">${t.text}</span>
+      <button class="task-del-btn" onclick="deleteTask(${t.id})">×</button>
+    </div>
+  `).join('');
+}
+
+render();
+renderTasks();
+</script>
+</body>
+</html>
