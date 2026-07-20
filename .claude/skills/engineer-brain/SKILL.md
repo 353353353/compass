@@ -77,7 +77,9 @@ This skill covers architecture/pattern judgment (deciding the structure
   tests land at them?), reports any drift, and auto-fixes the clear/small
   gaps. Reach for it once you've written the structural code this skill's
   decision shaped.
-- **Phase 3 — meta/automation layer (not yet built):** knowledge about
-  automating the engineering process itself (reducing how much a human needs
-  to specify at all), layered on top of phases 1 and 2. This file keeps
-  pointing at it so the skill can grow into it without a restructure.
+- **Phase 3 — meta/orchestration layer (BUILT):** the
+  `engineer-brain-orchestrate` skill sits on top of phases 1 and 2. It turns
+  an underspecified request into a spec (inferring defaults, asking only the
+  few decisions that genuinely need the human), then drives decide → implement
+  → verify autonomously with minimal check-ins — reducing how much the human
+  has to specify at all.

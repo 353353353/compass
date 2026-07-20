@@ -77,7 +77,8 @@ you paid for is actually there, actually used, and actually the right amount.
 
 ## Note on Phase 3
 
-The next planned layer (`engineer-brain`, not yet built) is meta-knowledge
-about automating the engineering process itself — reducing how much a human
-must specify at all. It would sit on top of Phase 1 (decide) and this Phase 2
-(verify). Not in scope here; noted so the family stays coherent.
+The top layer, `engineer-brain-orchestrate` (built), sits on top of Phase 1
+(decide) and this Phase 2 (verify): it turns an underspecified request into a
+spec and drives decide → implement → verify autonomously, consulting the human
+only where a decision is genuinely theirs. This skill is the "verify" step in
+that loop.
