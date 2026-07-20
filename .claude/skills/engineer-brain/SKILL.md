@@ -68,16 +68,16 @@ right structure yet — go back to question 1.
 
 ## Roadmap (not yet built — later phases)
 
-This skill currently covers architecture/pattern judgment only. Two further
-layers are planned and intentionally out of scope for now:
+This skill covers architecture/pattern judgment (deciding the structure
+*before* coding). The family grows in phases:
 
-- **Phase 2 — self-verification loop:** after implementing, the skill would
-  have Claude check its own output against the decision made here (did the
-  structure actually get used the way it was justified? did tests get added
-  at the seams it created?) and iterate autonomously where it falls short.
-- **Phase 3 — meta/automation layer:** knowledge about automating the
-  engineering process itself (reducing how much a human needs to specify at
-  all), layered on top of phases 1 and 2.
-
-Do not build these yet; this file should just keep pointing at them so the
-skill can grow into them without a restructure.
+- **Phase 2 — self-verification loop (BUILT):** the `engineer-brain-verify`
+  skill runs *after* implementing to check the code honored the decision made
+  here (did the justified structure materialize? are the seams real? did
+  tests land at them?), reports any drift, and auto-fixes the clear/small
+  gaps. Reach for it once you've written the structural code this skill's
+  decision shaped.
+- **Phase 3 — meta/automation layer (not yet built):** knowledge about
+  automating the engineering process itself (reducing how much a human needs
+  to specify at all), layered on top of phases 1 and 2. This file keeps
+  pointing at it so the skill can grow into it without a restructure.
