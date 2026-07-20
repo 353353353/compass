@@ -19,10 +19,10 @@ SKILLS=(
   "engineer-brain"
   "engineer-brain-verify"
   "engineer-brain-orchestrate"
-  "delegate-to-sonnet"
+  "delegate-work"
 )
 AGENTS=(
-  "sonnet-worker.md"
+  "worker.md"
 )
 
 mkdir -p "${DST}/skills" "${DST}/agents" 2>/dev/null || true
