@@ -1,12 +1,13 @@
 ---
 name: delegate-to-sonnet
-description: Use on any nontrivial coding task while running on an expensive model (Opus) to decide, per chunk of work, whether it can be delegated to a cheaper Sonnet subagent to save tokens — and to actually route it there. Trigger this whenever you're about to do bounded, well-specified execution work yourself (implementing an already-decided design, boilerplate, repetitive multi-file edits, writing straightforward tests, locating code, running tests/builds, mechanical refactors/renames/formatting) so that the expensive model spends its budget only on judgment (architecture, ambiguous debugging, tradeoffs, review). Especially reach for it at the start of a multi-step task to plan which parts go to Sonnet, and before starting any large mechanical edit. Keep the driver on Opus; push the "volume" work down.
+description: Use on any nontrivial coding task while running on an expensive driver model (e.g. Opus or Fable 5 — any model pricier than Sonnet) to decide, per chunk of work, whether it can be delegated to a cheaper Sonnet subagent to save tokens — and to actually route it there. Trigger this whenever you're about to do bounded, well-specified execution work yourself (implementing an already-decided design, boilerplate, repetitive multi-file edits, writing straightforward tests, locating code, running tests/builds, mechanical refactors/renames/formatting) so that the expensive model spends its budget only on judgment (architecture, ambiguous debugging, tradeoffs, review). Especially reach for it at the start of a multi-step task to plan which parts go to Sonnet, and before starting any large mechanical edit. Keep the driver on the capable model; push the "volume" work down.
 ---
 
 # Delegate to Sonnet — spend the expensive model only on judgment
 
 The goal is token economy without quality loss: keep the expensive driver
-model (Opus) for the parts that actually need its judgment, and hand the
+model (whatever's steering this session — Opus, Fable 5, or any model pricier
+than Sonnet) for the parts that actually need its judgment, and hand the
 bounded, well-specified "volume" work to a Sonnet subagent, which costs far
 less per token. Applied consistently, most of the keystrokes in a task run on
 the cheap model while the hard thinking stays on the capable one.
@@ -14,17 +15,18 @@ the cheap model while the hard thinking stays on the capable one.
 ## What this can and can't do
 
 Claude Code has no way to auto-switch the *main session* model by task — only
-the user (`/model`) or config can set it, and a model can't switch itself. So
-"automatic switching" here means **delegation**: the driver stays on Opus and
-routes delegatable work to a Sonnet subagent (the `sonnet-worker` agent, or
-any subagent spawned with the model set to `sonnet`). Once this convention is
-in place, that routing happens every task without the human re-deciding — that
-is the automation.
+the user (`/model`, or the model picker when starting a session) can set which
+model drives, and a model can't switch itself. So "automatic switching" here
+means **delegation**: the driver (whichever capable model the user chose)
+stays put and routes delegatable work to a Sonnet subagent (the
+`sonnet-worker` agent, or any subagent spawned with the model set to
+`sonnet`). Once this convention is in place, that routing happens every task
+without the human re-deciding — that is the automation.
 
 ## The routing decision
 
-For each chunk of work, ask: **does this need Opus-level judgment, or is it
-bounded execution against decisions already made?**
+For each chunk of work, ask: **does this need the driver model's judgment, or
+is it bounded execution against decisions already made?**
 
 ### Delegate to Sonnet when the work is well-specified and bounded
 - Implementing to an already-decided design/spec (the pattern, layout, and
@@ -36,7 +38,7 @@ bounded execution against decisions already made?**
 - Mechanical refactors, renames, formatting, codemods.
 - Formatting a document from content you've already written.
 
-### Keep on Opus (the driver) — do NOT delegate
+### Keep on the driver model — do NOT delegate
 - Architecture and design decisions (that's `engineer-brain` territory).
 - Ambiguous or underspecified work where the spec has to be *invented* — if
   you can't write a precise brief, Sonnet can't execute it; decide first.
@@ -72,8 +74,8 @@ big or repetitive enough that the handoff pays for itself.
    subagents when they don't depend on each other.
 4. **Review the result on the driver.** Check it against the brief and the
    design intent — this is the judgment step that justifies keeping the
-   driver on Opus. `engineer-brain-verify` is the natural tool for reviewing
-   delegated structural code. Fix or re-delegate as needed.
+   driver on the capable model. `engineer-brain-verify` is the natural tool
+   for reviewing delegated structural code. Fix or re-delegate as needed.
 
 ## Traps
 
