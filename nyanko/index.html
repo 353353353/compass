@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#f6a13c">
+<title>にゃんこウォーズ</title>
+<link rel="stylesheet" href="style.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='26' font-size='26'>🐱</text></svg>">
+</head>
+<body>
+<div id="app">
+
+  <!-- ================================================== タイトル -->
+  <section id="scr-title" class="screen show">
+    <div class="title-wrap">
+      <canvas id="title-canvas" width="360" height="200"></canvas>
+      <h1 class="logo"><span>にゃんこ</span>ウォーズ</h1>
+      <p class="tagline">ネコを出す。敵の城を壊す。それだけ。</p>
+      <button id="btn-start" class="btn big">ゲームスタート</button>
+      <div class="title-sub">
+        <button id="btn-howto" class="btn ghost sm">あそびかた</button>
+        <button id="btn-reset" class="btn ghost sm danger">データ消去</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================================== ステージ選択 -->
+  <section id="scr-map" class="screen">
+    <header class="topbar">
+      <button class="btn icon" data-go="scr-title">◀</button>
+      <h2>ネコ島 進軍マップ</h2>
+      <div class="xp-chip">XP <b id="map-xp">0</b></div>
+      <button id="btn-open-upgrade" class="btn accent sm">強化</button>
+    </header>
+    <div id="stage-list" class="stage-list"></div>
+  </section>
+
+  <!-- ================================================== 強化 -->
+  <section id="scr-upgrade" class="screen">
+    <header class="topbar">
+      <button class="btn icon" data-go="scr-map">◀</button>
+      <h2>ネコ強化</h2>
+      <div class="xp-chip">XP <b id="up-xp">0</b></div>
+    </header>
+    <div id="upgrade-list" class="upgrade-list"></div>
+  </section>
+
+  <!-- ================================================== 編成モーダル -->
+  <div id="modal-team" class="modal">
+    <div class="sheet">
+      <h3 id="team-stage-name">ステージ</h3>
+      <p id="team-stage-info" class="muted"></p>
+      <div class="team-head">
+        <span>出撃メンバー <b id="team-count">0</b>/6</span>
+        <span class="muted sm">タップで入れ替え</span>
+      </div>
+      <div id="team-list" class="team-list"></div>
+      <div class="sheet-actions">
+        <button class="btn ghost" data-close-modal>もどる</button>
+        <button id="btn-sortie" class="btn big">出撃！</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================================== 戦闘 -->
+  <section id="scr-battle" class="screen battle">
+    <canvas id="field"></canvas>
+
+    <div class="hud-top">
+      <div class="hp-box ally">
+        <span class="hp-label">自城</span>
+        <div class="hp-track"><div id="hp-ally" class="hp-fill ally"></div></div>
+        <span id="hp-ally-txt" class="hp-num">0</span>
+      </div>
+      <div class="hud-mid">
+        <span id="hud-time" class="time">0:00</span>
+        <button id="btn-speed" class="btn tiny">×1</button>
+        <button id="btn-pause" class="btn tiny">Ⅱ</button>
+        <button id="btn-retreat" class="btn tiny danger">撤退</button>
+      </div>
+      <div class="hp-box foe">
+        <span class="hp-label">敵城</span>
+        <div class="hp-track"><div id="hp-foe" class="hp-fill foe"></div></div>
+        <span id="hp-foe-txt" class="hp-num">0</span>
+      </div>
+    </div>
+
+    <div id="boss-alert" class="boss-alert">ボス出現！</div>
+
+    <div class="hud-bottom">
+      <div class="left-col">
+        <button id="btn-worker" class="worker">
+          <span class="w-title">働きネコ <b id="worker-lv">Lv1</b></span>
+          <span id="worker-cost" class="w-cost">200</span>
+        </button>
+        <div class="wallet">
+          <div class="wallet-track"><div id="wallet-fill" class="wallet-fill"></div></div>
+          <span id="wallet-txt">0 / 1500</span>
+        </div>
+      </div>
+      <div id="unit-bar" class="unit-bar"></div>
+      <button id="btn-cannon" class="cannon">
+        <div class="cannon-ring"><canvas id="cannon-canvas" width="60" height="60"></canvas></div>
+        <span>キャノン</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- ================================================== リザルト -->
+  <div id="modal-result" class="modal">
+    <div class="sheet result">
+      <h3 id="result-title">勝利！</h3>
+      <div id="result-body" class="result-body"></div>
+      <div id="result-unlock" class="unlock"></div>
+      <div class="sheet-actions">
+        <button id="btn-result-map" class="btn ghost">マップへ</button>
+        <button id="btn-result-retry" class="btn">もう一度</button>
+        <button id="btn-result-next" class="btn big">次のステージ</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================================== あそびかた -->
+  <div id="modal-howto" class="modal">
+    <div class="sheet">
+      <h3>あそびかた</h3>
+      <ul class="howto">
+        <li><b>お金は自動でたまる。</b>下のバーが所持金。ネコを出すと減る。</li>
+        <li><b>ネコを出す。</b>下のボタンをタップ。出したネコは勝手に右へ進んで敵を殴る。</li>
+        <li><b>働きネコを上げる。</b>お金の増える速さと上限が上がる。序盤に上げるほど後が楽。</li>
+        <li><b>ネコキャノン。</b>たまると発射でき、敵をまとめて吹き飛ばす。ピンチの押し返しに。</li>
+        <li><b>敵の城を壊せば勝ち。</b>ただし城を叩いた瞬間にボスが出てくる。</li>
+        <li><b>属性。</b>ウシは赤に、トリは浮きに、キノコは黒に強い（与ダメ1.6倍／被ダメ0.55倍）。</li>
+        <li><b>ノックバック。</b>体力が一定量減るたびに吹き飛ぶ。壁役は吹き飛びやすく、大型は粘る。</li>
+        <li class="muted">キーボード: 1〜6 出撃 / Space キャノン / W 働きネコ / P 一時停止 / S 速度</li>
+      </ul>
+      <div class="sheet-actions"><button class="btn big" data-close-modal>とじる</button></div>
+    </div>
+  </div>
+
+</div>
+
+<script src="js/data.js"></script>
+<script src="js/engine.js"></script>
+<script src="js/render.js"></script>
+<script src="js/save.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
