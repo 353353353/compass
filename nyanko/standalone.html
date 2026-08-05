@@ -1,0 +1,2659 @@
+<!DOCTYPE html>
+<!-- 自動生成ファイル。編集せず build-standalone.js を実行し直してください。 -->
+
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#f6a13c">
+<title>にゃんこウォーズ</title>
+<style>
+/* =========================================================================
+   にゃんこウォーズ  UI
+   ====================================================================== */
+
+:root {
+  --ink: #34281f;
+  --ink-soft: #6f5b4a;
+  --cream: #fff6e6;
+  --paper: #fffaf0;
+  --orange: #f6a13c;
+  --orange-d: #e0791b;
+  --red: #e0563f;
+  --green: #4faa62;
+  --blue: #4a90d9;
+  --line: rgba(52, 40, 31, .16);
+  --shadow: 0 3px 0 rgba(52, 40, 31, .22);
+  --r: 14px;
+}
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+html, body {
+  margin: 0; height: 100%; overflow: hidden;
+  background: #2b2430;
+  color: var(--ink);
+  font-family: "Hiragino Maru Gothic ProN", "Hiragino Sans", "Yu Gothic", "Noto Sans JP", system-ui, sans-serif;
+  font-weight: 600;
+  user-select: none;
+  overscroll-behavior: none;
+}
+
+/* 100% ではなく dvh を使う。スマホのアドレスバー伸縮でも高さが破綻せず、
+   埋め込み（iframe）で親の高さが取れない場合も潰れない。 */
+#app { position: relative; height: 100vh; height: 100dvh; width: 100%; overflow: hidden; }
+
+.screen {
+  position: absolute; inset: 0;
+  display: none; flex-direction: column;
+  background: var(--cream);
+}
+.screen.show { display: flex; }
+
+/* ------------------------------------------------------------- 共通部品 */
+.btn {
+  font: inherit; font-weight: 800;
+  border: none; border-radius: 999px;
+  padding: 11px 20px;
+  background: var(--orange); color: #fff;
+  box-shadow: 0 3px 0 var(--orange-d);
+  cursor: pointer; transition: transform .08s, box-shadow .08s, filter .15s;
+}
+.btn:active { transform: translateY(3px); box-shadow: 0 0 0 var(--orange-d); }
+.btn:disabled { filter: grayscale(.7) brightness(1.15); box-shadow: none; cursor: default; opacity: .6; }
+.btn.big { font-size: 18px; padding: 14px 32px; }
+.btn.sm { padding: 8px 14px; font-size: 13px; }
+.btn.tiny { padding: 5px 10px; font-size: 12px; border-radius: 8px; box-shadow: 0 2px 0 var(--orange-d); }
+.btn.ghost { background: #fff; color: var(--ink); box-shadow: 0 3px 0 var(--line); }
+.btn.accent { background: var(--blue); box-shadow: 0 3px 0 #2f6ba8; }
+.btn.danger { background: var(--red); box-shadow: 0 3px 0 #b23c2a; }
+.btn.icon { padding: 8px 13px; background: #fff; color: var(--ink); box-shadow: 0 3px 0 var(--line); }
+
+.muted { color: var(--ink-soft); font-weight: 600; }
+.sm { font-size: 12px; }
+
+.topbar {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 14px; padding-top: max(12px, env(safe-area-inset-top));
+  background: var(--orange);
+  box-shadow: 0 3px 0 rgba(0, 0, 0, .1);
+  flex: 0 0 auto;
+}
+.topbar h2 { margin: 0; font-size: 17px; color: #fff; flex: 1; text-shadow: 0 2px 0 rgba(0, 0, 0, .15); }
+.xp-chip {
+  background: #fff; border-radius: 999px; padding: 5px 12px; font-size: 12px;
+  box-shadow: 0 2px 0 rgba(0, 0, 0, .12);
+}
+.xp-chip b { color: var(--orange-d); font-size: 14px; }
+
+/* ------------------------------------------------------------- タイトル */
+#scr-title {
+  background: linear-gradient(180deg, #7ec8f2, #d8f0ff 55%, #5aa04d 55%, #4e8f43);
+  align-items: center; justify-content: center;
+}
+.title-wrap { text-align: center; padding: 20px; }
+#title-canvas { display: block; margin: 0 auto -14px; max-width: 92vw; }
+.logo {
+  margin: 0 0 4px; font-size: clamp(30px, 9vw, 52px); letter-spacing: .02em;
+  color: #fff;
+  -webkit-text-stroke: 5px #3a2a18;
+  paint-order: stroke fill;
+  text-shadow: 0 5px 0 #3a2a18, 0 9px 14px rgba(0, 0, 0, .35);
+}
+.logo span { color: #ffd24a; }
+.tagline { margin: 0 0 22px; color: #fff; text-shadow: 0 2px 3px rgba(0, 0, 0, .35); font-size: 14px; }
+.title-sub { margin-top: 16px; display: flex; gap: 10px; justify-content: center; }
+
+/* ------------------------------------------------------------- ステージ */
+.stage-list { flex: 1; overflow-y: auto; padding: 14px; display: grid; gap: 10px; }
+.stage-card {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--paper); border-radius: var(--r); padding: 12px 14px;
+  box-shadow: var(--shadow); border: 2px solid transparent; cursor: pointer;
+}
+.stage-card:active { transform: translateY(2px); }
+.stage-card.locked { opacity: .5; filter: grayscale(1); cursor: default; }
+.stage-card.cleared { border-color: var(--green); }
+.stage-no {
+  flex: 0 0 42px; height: 42px; border-radius: 12px;
+  background: var(--orange); color: #fff;
+  display: grid; place-items: center; font-size: 18px; font-weight: 900;
+  box-shadow: 0 2px 0 var(--orange-d);
+}
+.stage-card.cleared .stage-no { background: var(--green); box-shadow: 0 2px 0 #3a8049; }
+.stage-meta { flex: 1; min-width: 0; }
+.stage-meta .n { font-size: 15px; }
+.stage-meta .d { font-size: 11.5px; color: var(--ink-soft); margin-top: 2px; }
+.stage-flag { font-size: 20px; }
+
+/* ------------------------------------------------------------- 強化 */
+.upgrade-list { flex: 1; overflow-y: auto; padding: 14px; display: grid; gap: 10px; }
+.up-card {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--paper); border-radius: var(--r); padding: 10px 12px; box-shadow: var(--shadow);
+}
+.up-icon { width: 56px; height: 56px; flex: 0 0 56px; border-radius: 12px; background: #f0e6d4; }
+.up-body { flex: 1; min-width: 0; }
+.up-name { font-size: 15px; display: flex; align-items: center; gap: 6px; }
+.up-lv { background: var(--ink); color: #fff; border-radius: 6px; padding: 1px 7px; font-size: 11px; }
+.up-tag { background: #ffe3bd; color: var(--orange-d); border-radius: 6px; padding: 1px 7px; font-size: 11px; }
+.up-stats { font-size: 11.5px; color: var(--ink-soft); margin-top: 3px; line-height: 1.5; }
+.up-desc { font-size: 11px; color: var(--ink-soft); margin-top: 2px; }
+.up-action { flex: 0 0 auto; text-align: center; }
+.up-action .cost { display: block; font-size: 11px; color: var(--ink-soft); margin-top: 3px; }
+
+/* ------------------------------------------------------------- モーダル */
+.modal {
+  position: absolute; inset: 0; display: none;
+  align-items: center; justify-content: center;
+  background: rgba(30, 22, 16, .55); backdrop-filter: blur(2px);
+  z-index: 40; padding: 16px;
+}
+.modal.show { display: flex; }
+.sheet {
+  background: var(--paper); border-radius: 20px; padding: 18px;
+  width: min(520px, 100%); max-height: 88vh; overflow-y: auto;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, .4);
+}
+.sheet h3 { margin: 0 0 6px; font-size: 20px; }
+.sheet-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 16px; flex-wrap: wrap; }
+.team-head { display: flex; justify-content: space-between; align-items: baseline; margin: 14px 0 8px; font-size: 13px; }
+.team-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 8px; }
+.team-item {
+  background: #f3ece0; border-radius: 12px; padding: 8px 6px; text-align: center;
+  border: 3px solid transparent; cursor: pointer; position: relative;
+}
+.team-item.on { border-color: var(--orange); background: #fff4e0; }
+.team-item canvas { display: block; margin: 0 auto; }
+.team-item .tn { font-size: 11.5px; margin-top: 2px; }
+.team-item .tc { font-size: 10.5px; color: var(--ink-soft); }
+.team-item .slot {
+  position: absolute; top: -6px; left: -6px; width: 20px; height: 20px; border-radius: 50%;
+  background: var(--orange); color: #fff; font-size: 11px; display: grid; place-items: center;
+}
+.howto { margin: 8px 0 0; padding-left: 20px; line-height: 1.85; font-size: 13.5px; font-weight: 600; }
+.howto b { color: var(--orange-d); }
+
+.result-body { font-size: 14px; line-height: 1.9; }
+.result-body .row { display: flex; justify-content: space-between; border-bottom: 1px dashed var(--line); padding: 3px 0; }
+.result-body .row b { font-size: 16px; color: var(--orange-d); }
+.unlock {
+  display: none; margin-top: 12px; padding: 12px; border-radius: 12px;
+  background: #fff2d6; text-align: center; font-size: 14px;
+}
+.unlock.show { display: block; }
+.unlock canvas { display: block; margin: 4px auto; }
+
+/* ------------------------------------------------------------- 戦闘 */
+.battle { background: #111; }
+#field { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
+
+.hud-top {
+  position: absolute; top: 0; left: 0; right: 0;
+  display: flex; align-items: flex-start; gap: 8px;
+  padding: 8px 10px; padding-top: max(8px, env(safe-area-inset-top));
+  pointer-events: none;
+}
+.hp-box {
+  flex: 1 1 0; min-width: 0; background: rgba(20, 14, 10, .55); border-radius: 10px;
+  padding: 5px 8px; color: #fff; backdrop-filter: blur(3px);
+}
+.hp-label { font-size: 10px; opacity: .85; }
+.hp-track { height: 9px; background: rgba(255, 255, 255, .22); border-radius: 999px; overflow: hidden; margin: 2px 0; }
+.hp-fill { height: 100%; width: 100%; border-radius: 999px; transition: width .12s linear; }
+.hp-fill.ally { background: linear-gradient(90deg, #6fe08a, #43b061); }
+.hp-fill.foe { background: linear-gradient(90deg, #ff8a80, #d94a4a); }
+.hp-num { font-size: 10.5px; opacity: .9; font-variant-numeric: tabular-nums; }
+.hp-box.foe { text-align: right; }
+
+.hud-mid { display: flex; flex-direction: column; align-items: center; gap: 4px; pointer-events: auto; }
+.hud-mid .time {
+  background: rgba(20, 14, 10, .55); color: #fff; border-radius: 8px;
+  padding: 3px 10px; font-size: 12px; font-variant-numeric: tabular-nums;
+}
+.hud-mid > div, .hud-mid button { pointer-events: auto; }
+.hud-mid { flex-direction: row; align-items: center; flex-wrap: wrap; justify-content: center; max-width: 42%; }
+
+.boss-alert {
+  position: absolute; top: 32%; left: 0; right: 0; text-align: center;
+  font-size: clamp(26px, 8vw, 46px); font-weight: 900; color: #fff;
+  text-shadow: 0 0 18px #e33, 0 4px 0 #a11; opacity: 0; pointer-events: none;
+  letter-spacing: .06em;
+}
+.boss-alert.show { animation: bossIn 2s ease-out; }
+@keyframes bossIn {
+  0% { opacity: 0; transform: scale(.4); }
+  15% { opacity: 1; transform: scale(1.12); }
+  25% { transform: scale(1); }
+  80% { opacity: 1; }
+  100% { opacity: 0; transform: scale(1.05); }
+}
+
+.hud-bottom {
+  position: absolute; left: 0; right: 0; bottom: 0;
+  display: flex; align-items: stretch; gap: 8px;
+  padding: 8px 10px; padding-bottom: max(8px, env(safe-area-inset-bottom));
+  background: linear-gradient(180deg, rgba(20, 14, 10, 0), rgba(20, 14, 10, .72) 26%);
+}
+.left-col { display: flex; flex-direction: column; gap: 5px; flex: 0 0 auto; width: 116px; }
+.worker {
+  font: inherit; border: none; cursor: pointer; text-align: left;
+  background: var(--green); color: #fff; border-radius: 10px; padding: 6px 8px;
+  box-shadow: 0 3px 0 #367a45; line-height: 1.3;
+}
+.worker:active { transform: translateY(3px); box-shadow: none; }
+.worker:disabled { filter: grayscale(.6) brightness(1.1); opacity: .65; box-shadow: none; }
+.worker .w-title { display: block; font-size: 11px; }
+.worker .w-cost { display: block; font-size: 13px; font-weight: 900; }
+.worker .w-cost::before { content: "¢"; margin-right: 2px; font-size: 11px; opacity: .8; }
+.wallet { background: rgba(20, 14, 10, .6); border-radius: 10px; padding: 4px 7px; color: #fff; }
+.wallet-track { height: 8px; background: rgba(255, 255, 255, .2); border-radius: 999px; overflow: hidden; }
+.wallet-fill { height: 100%; width: 0; background: linear-gradient(90deg, #ffe066, #f6a13c); border-radius: 999px; }
+.wallet span { font-size: 10.5px; font-variant-numeric: tabular-nums; }
+
+.unit-bar {
+  flex: 1 1 0; min-width: 0; display: flex; gap: 6px; overflow-x: auto; overflow-y: hidden;
+  padding: 2px; scrollbar-width: none;
+}
+.unit-bar::-webkit-scrollbar { display: none; }
+.unit-btn {
+  position: relative; flex: 0 0 auto; width: 74px;
+  background: var(--paper); border: none; border-radius: 12px; padding: 3px 2px 4px;
+  cursor: pointer; overflow: hidden; box-shadow: 0 3px 0 rgba(0, 0, 0, .35);
+  font: inherit; color: var(--ink);
+}
+.unit-btn:active { transform: translateY(3px); box-shadow: none; }
+.unit-btn canvas { display: block; margin: 0 auto; }
+.unit-btn .cost {
+  display: block; font-size: 12px; font-weight: 900; color: var(--orange-d);
+  font-variant-numeric: tabular-nums;
+}
+.unit-btn .cost::before { content: "¢"; font-size: 10px; opacity: .7; margin-right: 1px; }
+.unit-btn .key { position: absolute; top: 2px; left: 4px; font-size: 9px; color: var(--ink-soft); }
+.unit-btn .cd {
+  position: absolute; left: 0; right: 0; bottom: 0;
+  background: rgba(20, 14, 10, .62); height: 0%;
+  pointer-events: none;
+}
+.unit-btn.poor { filter: grayscale(.8) brightness(.9); }
+.unit-btn.poor .cost { color: var(--red); }
+
+.cannon {
+  flex: 0 0 auto; width: 78px; border: none; border-radius: 12px; cursor: pointer;
+  background: #3d4a63; color: #fff; font: inherit; font-size: 11px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
+  box-shadow: 0 3px 0 #26304a; padding: 4px;
+}
+.cannon:active { transform: translateY(3px); box-shadow: none; }
+.cannon.ready { background: #4a90d9; box-shadow: 0 3px 0 #2f6ba8; animation: pulse 1.1s infinite; }
+@keyframes pulse { 50% { filter: brightness(1.25); } }
+.cannon-ring { line-height: 0; }
+
+/* 幅の狭い端末では、財布まわりを1行目に逃がして出撃ボタンに横幅を全部渡す */
+@media (max-width: 560px) {
+  .hud-bottom { flex-wrap: wrap; gap: 6px; }
+  .left-col {
+    width: 100%; order: -1; flex-direction: row; align-items: center; gap: 6px;
+  }
+  .worker { flex: 0 0 auto; padding: 4px 10px; }
+  .worker .w-title, .worker .w-cost { display: inline; }
+  .worker .w-cost { margin-left: 6px; }
+  .wallet { flex: 1 1 auto; }
+  .unit-btn { width: 62px; }
+  .cannon { width: 60px; font-size: 10px; }
+}
+@media (max-height: 460px) {
+  .hud-bottom { padding-top: 2px; }
+  .unit-btn { width: 60px; }
+}
+
+</style>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='26' font-size='26'>🐱</text></svg>">
+</head>
+<body>
+<div id="app">
+
+  <!-- ================================================== タイトル -->
+  <section id="scr-title" class="screen show">
+    <div class="title-wrap">
+      <canvas id="title-canvas" width="360" height="200"></canvas>
+      <h1 class="logo"><span>にゃんこ</span>ウォーズ</h1>
+      <p class="tagline">ネコを出す。敵の城を壊す。それだけ。</p>
+      <button id="btn-start" class="btn big">ゲームスタート</button>
+      <div class="title-sub">
+        <button id="btn-howto" class="btn ghost sm">あそびかた</button>
+        <button id="btn-reset" class="btn ghost sm danger">データ消去</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================================== ステージ選択 -->
+  <section id="scr-map" class="screen">
+    <header class="topbar">
+      <button class="btn icon" data-go="scr-title">◀</button>
+      <h2>ネコ島 進軍マップ</h2>
+      <div class="xp-chip">XP <b id="map-xp">0</b></div>
+      <button id="btn-open-upgrade" class="btn accent sm">強化</button>
+    </header>
+    <div id="stage-list" class="stage-list"></div>
+  </section>
+
+  <!-- ================================================== 強化 -->
+  <section id="scr-upgrade" class="screen">
+    <header class="topbar">
+      <button class="btn icon" data-go="scr-map">◀</button>
+      <h2>ネコ強化</h2>
+      <div class="xp-chip">XP <b id="up-xp">0</b></div>
+    </header>
+    <div id="upgrade-list" class="upgrade-list"></div>
+  </section>
+
+  <!-- ================================================== 編成モーダル -->
+  <div id="modal-team" class="modal">
+    <div class="sheet">
+      <h3 id="team-stage-name">ステージ</h3>
+      <p id="team-stage-info" class="muted"></p>
+      <div class="team-head">
+        <span>出撃メンバー <b id="team-count">0</b>/6</span>
+        <span class="muted sm">タップで入れ替え</span>
+      </div>
+      <div id="team-list" class="team-list"></div>
+      <div class="sheet-actions">
+        <button class="btn ghost" data-close-modal>もどる</button>
+        <button id="btn-sortie" class="btn big">出撃！</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================================== 戦闘 -->
+  <section id="scr-battle" class="screen battle">
+    <canvas id="field"></canvas>
+
+    <div class="hud-top">
+      <div class="hp-box ally">
+        <span class="hp-label">自城</span>
+        <div class="hp-track"><div id="hp-ally" class="hp-fill ally"></div></div>
+        <span id="hp-ally-txt" class="hp-num">0</span>
+      </div>
+      <div class="hud-mid">
+        <span id="hud-time" class="time">0:00</span>
+        <button id="btn-speed" class="btn tiny">×1</button>
+        <button id="btn-pause" class="btn tiny">Ⅱ</button>
+        <button id="btn-retreat" class="btn tiny danger">撤退</button>
+      </div>
+      <div class="hp-box foe">
+        <span class="hp-label">敵城</span>
+        <div class="hp-track"><div id="hp-foe" class="hp-fill foe"></div></div>
+        <span id="hp-foe-txt" class="hp-num">0</span>
+      </div>
+    </div>
+
+    <div id="boss-alert" class="boss-alert">ボス出現！</div>
+
+    <div class="hud-bottom">
+      <div class="left-col">
+        <button id="btn-worker" class="worker">
+          <span class="w-title">働きネコ <b id="worker-lv">Lv1</b></span>
+          <span id="worker-cost" class="w-cost">200</span>
+        </button>
+        <div class="wallet">
+          <div class="wallet-track"><div id="wallet-fill" class="wallet-fill"></div></div>
+          <span id="wallet-txt">0 / 1500</span>
+        </div>
+      </div>
+      <div id="unit-bar" class="unit-bar"></div>
+      <button id="btn-cannon" class="cannon">
+        <div class="cannon-ring"><canvas id="cannon-canvas" width="60" height="60"></canvas></div>
+        <span>キャノン</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- ================================================== リザルト -->
+  <div id="modal-result" class="modal">
+    <div class="sheet result">
+      <h3 id="result-title">勝利！</h3>
+      <div id="result-body" class="result-body"></div>
+      <div id="result-unlock" class="unlock"></div>
+      <div class="sheet-actions">
+        <button id="btn-result-map" class="btn ghost">マップへ</button>
+        <button id="btn-result-retry" class="btn">もう一度</button>
+        <button id="btn-result-next" class="btn big">次のステージ</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================================== あそびかた -->
+  <div id="modal-howto" class="modal">
+    <div class="sheet">
+      <h3>あそびかた</h3>
+      <ul class="howto">
+        <li><b>お金は自動でたまる。</b>下のバーが所持金。ネコを出すと減る。</li>
+        <li><b>ネコを出す。</b>下のボタンをタップ。出したネコは勝手に右へ進んで敵を殴る。</li>
+        <li><b>働きネコを上げる。</b>お金の増える速さと上限が上がる。序盤に上げるほど後が楽。</li>
+        <li><b>ネコキャノン。</b>たまると発射でき、敵をまとめて吹き飛ばす。ピンチの押し返しに。</li>
+        <li><b>敵の城を壊せば勝ち。</b>ただし城を叩いた瞬間にボスが出てくる。</li>
+        <li><b>属性。</b>ウシは赤に、トリは浮きに、キノコは黒に強い（与ダメ1.6倍／被ダメ0.55倍）。</li>
+        <li><b>ノックバック。</b>体力が一定量減るたびに吹き飛ぶ。壁役は吹き飛びやすく、大型は粘る。</li>
+        <li class="muted">キーボード: 1〜6 出撃 / Space キャノン / W 働きネコ / P 一時停止 / S 速度</li>
+      </ul>
+      <div class="sheet-actions"><button class="btn big" data-close-modal>とじる</button></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+/* ===========================================================================
+ *  にゃんこウォーズ  --  データ定義
+ *  すべての数値は「1秒 = 60フレーム」「距離 = ワールドピクセル」で統一。
+ *    speed  : px / 秒
+ *    rate   : 攻撃1サイクルのフレーム数（この間は移動できない）
+ *    fore   : サイクル開始から実際にダメージが出るまでのフレーム数（攻撃前隙）
+ *    kb     : 体力を何分割してノックバックするか（多いほど吹き飛びやすい）
+ * ======================================================================== */
+
+const TRAITS = {
+  red:      { label: '赤い敵',   color: '#e5484d' },
+  floating: { label: '浮いてる敵', color: '#57b6ff' },
+  black:    { label: '黒い敵',   color: '#7b6bd6' },
+  metal:    { label: 'メタル',   color: '#9aa6b2' },
+};
+
+/* --------------------------------------------------------------------------
+ *  自軍ユニット
+ *  strong  : この属性に対して 攻撃x1.6 / 被ダメx0.55
+ *  massive : この属性に対して 攻撃x3.0（超ダメージ）
+ * ----------------------------------------------------------------------- */
+const UNITS = [
+  {
+    id: 'cat', name: 'ネコ', role: '量産',
+    cost: 75, cooldown: 120,
+    hp: 260, atk: 26, range: 55, rate: 40, fore: 12, speed: 92, kb: 3,
+    area: false, art: 'cat', scale: 1.0,
+    desc: '安くて速い基本のネコ。数で押すのが猫の道。',
+  },
+  {
+    id: 'tank', name: 'タンクネコ', role: '壁',
+    cost: 150, cooldown: 150,
+    hp: 1100, atk: 6, range: 45, rate: 60, fore: 20, speed: 72, kb: 4,
+    area: false, art: 'tank', scale: 1.05,
+    desc: '攻撃力は皆無だが硬い。味方が殴る時間を稼ぐ。',
+  },
+  {
+    id: 'cow', name: 'ウシネコ', role: '対赤・速攻',
+    cost: 210, cooldown: 190,
+    hp: 340, atk: 58, range: 60, rate: 45, fore: 15, speed: 188, kb: 3,
+    area: false, art: 'cow', scale: 1.0, strong: ['red'],
+    desc: '爆走して赤い敵に噛みつく。足の速さは全ネコ随一。',
+  },
+  {
+    id: 'axe', name: 'バトルネコ', role: '主力',
+    cost: 320, cooldown: 240,
+    hp: 620, atk: 115, range: 65, rate: 80, fore: 25, speed: 104, kb: 3,
+    area: false, art: 'axe', scale: 1.08,
+    desc: '斧を振り回すアタッカー。壁の後ろから前線を削る。',
+  },
+  {
+    id: 'shroom', name: 'キノコネコ', role: '対黒・範囲',
+    cost: 420, cooldown: 330,
+    hp: 700, atk: 185, range: 80, rate: 110, fore: 40, speed: 76, kb: 3,
+    area: true, art: 'shroom', scale: 1.12, strong: ['black'],
+    desc: '胞子で薙ぎ払う範囲攻撃。黒い敵に滅法強い。',
+  },
+  {
+    id: 'bird', name: 'トリネコ', role: '対浮き・遠距離',
+    cost: 520, cooldown: 400,
+    hp: 320, atk: 130, range: 285, rate: 130, fore: 50, speed: 82, kb: 4,
+    area: true, art: 'bird', scale: 1.0, strong: ['floating'],
+    desc: '後方から羽根を飛ばす。浮いてる敵を撃ち落とす。',
+  },
+  {
+    id: 'lizard', name: 'トカゲネコ', role: '超遠距離',
+    cost: 480, cooldown: 420,
+    hp: 380, atk: 105, range: 345, rate: 100, fore: 35, speed: 66, kb: 3,
+    area: false, art: 'lizard', scale: 1.02,
+    desc: '射程345。壁さえ立てば一方的に殴り続けられる。',
+  },
+  {
+    id: 'titan', name: '巨神ネコ', role: '大型',
+    cost: 1250, cooldown: 900,
+    hp: 5200, atk: 720, range: 100, rate: 150, fore: 60, speed: 46, kb: 2,
+    area: true, art: 'titan', scale: 1.9,
+    desc: '重い、遅い、強い。出すタイミングを間違えなければ勝つ。',
+  },
+];
+
+/* --------------------------------------------------------------------------
+ *  敵キャラ
+ * ----------------------------------------------------------------------- */
+const ENEMIES = [
+  {
+    id: 'doge', name: 'わんこ',
+    hp: 120, atk: 25, range: 60, rate: 45, fore: 15, speed: 110, kb: 3,
+    area: false, art: 'doge', scale: 0.95, traits: [], money: 30, xp: 4,
+  },
+  {
+    id: 'reddoge', name: 'あかわんこ',
+    hp: 460, atk: 78, range: 60, rate: 55, fore: 18, speed: 96, kb: 3,
+    area: false, art: 'doge', scale: 1.05, traits: ['red'], money: 70, xp: 9,
+  },
+  {
+    id: 'snake', name: 'にょろ',
+    hp: 280, atk: 58, range: 135, rate: 70, fore: 25, speed: 74, kb: 3,
+    area: false, art: 'snake', scale: 1.0, traits: [], money: 60, xp: 8,
+  },
+  {
+    id: 'bat', name: 'ふわこうもり',
+    hp: 340, atk: 42, range: 70, rate: 35, fore: 12, speed: 168, kb: 4,
+    area: false, art: 'bat', scale: 0.95, traits: ['floating'], money: 75, xp: 10,
+  },
+  {
+    id: 'statue', name: 'ブロック像',
+    hp: 3000, atk: 0, range: 0, rate: 120, fore: 60, speed: 0, kb: 1,
+    area: false, art: 'statue', scale: 1.25, traits: [], money: 180, xp: 22,
+  },
+  {
+    id: 'gorilla', name: 'ゴリさん',
+    hp: 1300, atk: 150, range: 90, rate: 95, fore: 35, speed: 58, kb: 2,
+    area: true, art: 'gorilla', scale: 1.3, traits: ['black'], money: 200, xp: 26,
+  },
+  {
+    id: 'hippo', name: 'カバちゃん',
+    hp: 2800, atk: 320, range: 80, rate: 110, fore: 40, speed: 50, kb: 2,
+    area: false, art: 'hippo', scale: 1.45, traits: [], money: 320, xp: 40,
+  },
+  {
+    id: 'redhippo', name: 'あかカバちゃん', boss: true,
+    hp: 6400, atk: 500, range: 85, rate: 105, fore: 38, speed: 46, kb: 2,
+    area: false, art: 'hippo', scale: 1.6, traits: ['red'], money: 700, xp: 90,
+  },
+  {
+    id: 'general', name: 'ブラック大将', boss: true,
+    hp: 11500, atk: 820, range: 125, rate: 130, fore: 45, speed: 40, kb: 1,
+    area: true, art: 'general', scale: 1.85, traits: ['black'], money: 1400, xp: 180,
+  },
+];
+
+/* --------------------------------------------------------------------------
+ *  ステージ
+ *    spawns[] : { id, t, count, interval, boss }
+ *      t        … 開始からの秒数（boss:true の場合は「敵城を初めて叩いてから」の秒数）
+ *      count    … 出現数（省略時1）
+ *      interval … 2体目以降の間隔（秒）
+ *      loop     … true なら count 体出したあと loopEvery 秒ごとに再出現
+ * ----------------------------------------------------------------------- */
+const STAGES = [
+  {
+    id: 1, name: 'ネコ島 のはらっぱ', theme: 'grass', length: 3000,
+    baseHp: 3000, enemyBaseHp: 1600, xp: 120, unlock: 'tank',
+    spawns: [
+      { id: 'doge', t: 2, count: 4, interval: 7 },
+      { id: 'doge', t: 34, count: 4, interval: 5 },
+      { id: 'doge', boss: true, t: 0, count: 3, interval: 3 },
+    ],
+  },
+  {
+    id: 2, name: 'ネコ島 いぬの丘', theme: 'grass', length: 3200,
+    baseHp: 3000, enemyBaseHp: 2300, xp: 180, unlock: 'cow',
+    spawns: [
+      { id: 'doge', t: 1, count: 5, interval: 5 },
+      { id: 'reddoge', t: 24, count: 1 },
+      { id: 'doge', t: 30, count: 6, interval: 4 },
+      { id: 'reddoge', boss: true, t: 1, count: 2, interval: 6 },
+    ],
+  },
+  {
+    id: 3, name: 'にょろにょろ湿原', theme: 'swamp', length: 3400,
+    baseHp: 3500, enemyBaseHp: 3000, xp: 260, unlock: 'axe',
+    spawns: [
+      { id: 'snake', t: 3, count: 2, interval: 12 },
+      { id: 'doge', t: 8, count: 6, interval: 5 },
+      { id: 'snake', t: 34, count: 3, interval: 9 },
+      { id: 'reddoge', boss: true, t: 0, count: 2, interval: 5 },
+      { id: 'snake', boss: true, t: 4, count: 2, interval: 7 },
+    ],
+  },
+  {
+    id: 4, name: 'こうもり洞窟', theme: 'cave', length: 3400,
+    baseHp: 3500, enemyBaseHp: 3600, xp: 340, unlock: 'bird',
+    spawns: [
+      { id: 'bat', t: 2, count: 3, interval: 8 },
+      { id: 'doge', t: 10, count: 6, interval: 5 },
+      { id: 'bat', t: 30, count: 4, interval: 6 },
+      { id: 'bat', boss: true, t: 0, count: 5, interval: 3 },
+      { id: 'snake', boss: true, t: 6, count: 2, interval: 8 },
+    ],
+  },
+  {
+    id: 5, name: '石像のならぶ道', theme: 'cave', length: 3600,
+    baseHp: 4000, enemyBaseHp: 4300, xp: 430, unlock: 'shroom',
+    spawns: [
+      { id: 'statue', t: 0, count: 1 },
+      { id: 'doge', t: 6, count: 8, interval: 4 },
+      { id: 'snake', t: 20, count: 3, interval: 10 },
+      { id: 'statue', boss: true, t: 0, count: 1 },
+      { id: 'bat', boss: true, t: 2, count: 4, interval: 4 },
+      { id: 'reddoge', boss: true, t: 8, count: 3, interval: 5 },
+    ],
+  },
+  {
+    id: 6, name: 'ゴリラ山 中腹', theme: 'mountain', length: 3800,
+    baseHp: 4500, enemyBaseHp: 5200, xp: 540, unlock: 'lizard',
+    spawns: [
+      { id: 'doge', t: 2, count: 6, interval: 5, loop: true, loopEvery: 12, loops: 3 },
+      { id: 'gorilla', t: 25, count: 1 },
+      { id: 'snake', t: 40, count: 2, interval: 10 },
+      { id: 'gorilla', boss: true, t: 0, count: 1 },
+      { id: 'reddoge', boss: true, t: 3, count: 4, interval: 4 },
+    ],
+  },
+  {
+    id: 7, name: 'カバの水辺', theme: 'swamp', length: 3800,
+    baseHp: 4500, enemyBaseHp: 6200, xp: 680, unlock: null,
+    spawns: [
+      { id: 'doge', t: 1, count: 8, interval: 4, loop: true, loopEvery: 14, loops: 3 },
+      { id: 'bat', t: 18, count: 4, interval: 7 },
+      { id: 'hippo', t: 45, count: 1 },
+      { id: 'hippo', boss: true, t: 0, count: 1 },
+      { id: 'snake', boss: true, t: 4, count: 4, interval: 6 },
+    ],
+  },
+  {
+    id: 8, name: 'ゴリラ山 山頂', theme: 'mountain', length: 4000,
+    baseHp: 5000, enemyBaseHp: 7400, xp: 850, unlock: null,
+    spawns: [
+      { id: 'reddoge', t: 2, count: 4, interval: 8, loop: true, loopEvery: 18, loops: 3 },
+      { id: 'gorilla', t: 20, count: 2, interval: 25 },
+      { id: 'statue', t: 35, count: 1 },
+      { id: 'gorilla', boss: true, t: 0, count: 2, interval: 12 },
+      { id: 'bat', boss: true, t: 5, count: 6, interval: 3 },
+    ],
+  },
+  {
+    id: 9, name: 'あかカバ襲来', theme: 'grass', length: 4000,
+    baseHp: 5500, enemyBaseHp: 9000, xp: 1050, unlock: 'titan',
+    spawns: [
+      { id: 'doge', t: 1, count: 10, interval: 4, loop: true, loopEvery: 12, loops: 3 },
+      { id: 'reddoge', t: 15, count: 4, interval: 9 },
+      { id: 'hippo', t: 40, count: 1 },
+      { id: 'redhippo', boss: true, t: 0, count: 1 },
+      { id: 'reddoge', boss: true, t: 5, count: 5, interval: 5 },
+    ],
+  },
+  {
+    id: 10, name: 'ブラック大将の城', theme: 'castle', length: 4200,
+    baseHp: 6000, enemyBaseHp: 13000, xp: 1500, unlock: null,
+    spawns: [
+      { id: 'doge', t: 1, count: 8, interval: 4, loop: true, loopEvery: 10, loops: 4 },
+      { id: 'snake', t: 12, count: 4, interval: 8 },
+      { id: 'gorilla', t: 30, count: 2, interval: 20 },
+      { id: 'hippo', t: 55, count: 1 },
+      { id: 'general', boss: true, t: 0, count: 1 },
+      { id: 'gorilla', boss: true, t: 6, count: 3, interval: 10 },
+      { id: 'reddoge', boss: true, t: 3, count: 6, interval: 4 },
+    ],
+  },
+];
+
+/* --------------------------------------------------------------------------
+ *  働きネコ（財布）とネコキャノン
+ * ----------------------------------------------------------------------- */
+const WORKER = {
+  // レベル1〜8。income は 1秒あたりの獲得額、max は所持上限
+  income: [40, 62, 88, 118, 152, 192, 238, 292],
+  max:    [1500, 2600, 4000, 5800, 8000, 11000, 15000, 20000],
+  // レベルアップに必要な金額（レベル1→2 が cost[0]）
+  cost:   [200, 420, 720, 1120, 1650, 2350, 3200],
+};
+
+const CANNON = {
+  chargeFrames: 1500,   // 25秒でフル
+  damage: 450,
+  knockback: 260,       // 吹き飛ばす距離
+  range: 900,           // 自城から届く距離
+};
+
+const START_UNITS = ['cat'];
+const DEPLOY_LIMIT = 30;
+const LEVEL_MAX = 20;
+const LEVEL_STEP = 0.20;  // 1レベルごとに基礎値の20%上乗せ
+
+const UNIT_BY_ID = Object.fromEntries(UNITS.map(u => [u.id, u]));
+const ENEMY_BY_ID = Object.fromEntries(ENEMIES.map(e => [e.id, e]));
+const STAGE_BY_ID = Object.fromEntries(STAGES.map(s => [s.id, s]));
+
+</script>
+<script>
+/* ===========================================================================
+ *  戦闘シミュレーション
+ *  描画には一切依存しない。1フレーム = 1/60秒 固定ステップ。
+ * ======================================================================== */
+
+const FPS = 60;
+
+const SPAWN_MARGIN = 90;    // 城から何px離れた所に湧くか
+const BASE_HIT_INSET = 130; // 城の当たり判定位置（城の内側へのめり込み量）
+const OVERLAP = 34;         // 敵とどこまで重なるのを許すか
+
+/* ------------------------------------------------------------------ 個体 */
+class Fighter {
+  constructor(def, side, x, level) {
+    this.def = def;
+    this.side = side;                 // 'ally' | 'foe'
+    this.dir = side === 'ally' ? 1 : -1;
+    this.level = level || 1;
+
+    const m = side === 'ally' ? 1 + (this.level - 1) * LEVEL_STEP : 1;
+    this.maxHp = Math.round(def.hp * m);
+    this.hp = this.maxHp;
+    this.atk = Math.round(def.atk * m);
+
+    this.range = def.range;
+    this.rate = def.rate;
+    this.fore = def.fore;
+    this.speed = def.speed;
+    this.kb = def.kb;
+    this.area = !!def.area;
+    this.traits = def.traits || [];
+    this.strong = def.strong || [];
+    this.massive = def.massive || [];
+
+    this.x = x;
+    this.state = 'walk';              // walk | attack | kb
+    this.timer = 0;
+    this.didHit = false;
+    this.kbT = 0;
+    this.kbFrom = x;
+    this.kbTo = x;
+    this.dead = false;
+
+    // ノックバックの残段数（HPをkb等分した境界を跨ぐたびに1回吹き飛ぶ）
+    this.kbLeft = def.kb;
+
+    this.anim = Math.random() * 100;  // 歩行モーションの位相
+    this.row = 0;                     // 見た目の重なりをずらすための行
+    this.jitter = (Math.random() - 0.5) * 22;  // 密集時に団子にならないための見た目のずれ
+    this.flash = 0;
+  }
+
+  get segment() { return this.maxHp / this.kb; }
+
+  /* 攻撃が届く範囲（ワールド座標の区間） */
+  reach() {
+    return this.dir > 0
+      ? [this.x - OVERLAP, this.x + this.range]
+      : [this.x - this.range, this.x + OVERLAP];
+  }
+}
+
+/* ------------------------------------------------------------------ 城 */
+class Castle {
+  constructor(side, x, hp) {
+    this.side = side;
+    this.x = x;                       // 当たり判定のx
+    this.maxHp = hp;
+    this.hp = hp;
+    this.isCastle = true;
+    this.traits = [];
+    this.flash = 0;
+    this.dead = false;
+  }
+}
+
+/* ------------------------------------------------------------------ 本体 */
+class Battle {
+  constructor(stage, loadout, save) {
+    this.stage = stage;
+    this.save = save;
+    this.loadout = loadout.slice(0, 6);
+
+    this.length = stage.length;
+    this.allyCastle = new Castle('ally', BASE_HIT_INSET, stage.baseHp);
+    this.foeCastle = new Castle('foe', stage.length - BASE_HIT_INSET, stage.enemyBaseHp);
+
+    this.allies = [];
+    this.foes = [];
+    this.effects = [];
+
+    this.frame = 0;
+    this.result = null;               // null | 'win' | 'lose'
+    this.resultFrame = 0;
+
+    this.workerLevel = 1;
+    this.money = 0;
+    this.cannonCharge = 0;
+
+    // 出撃ボタンごとのリチャージ
+    this.cool = {};
+    for (const id of this.loadout) this.cool[id] = 0;
+
+    this.bossTriggered = false;
+    this.bossTime = 0;
+    this.spawners = stage.spawns.map(s => ({
+      def: ENEMY_BY_ID[s.id],
+      t0: s.t || 0,
+      count: s.count || 1,
+      interval: s.interval || 0,
+      boss: !!s.boss,
+      loop: !!s.loop,
+      loopEvery: s.loopEvery || 0,
+      loopMax: s.loops == null ? 3 : s.loops,   // 追加で何周するか（無限にはしない）
+      fired: 0,
+      cycle: 0,          // 何周目か
+      base: 0,           // このサイクルの基準時刻（秒）
+      armed: !s.boss,
+    }));
+
+    this.stats = { killed: 0, xp: 0, spawned: 0, peakFoes: 0 };
+  }
+
+  /* ---------------------------------------------------------- 便利参照 */
+  get time() { return this.frame / FPS; }
+  get income() { return WORKER.income[this.workerLevel - 1]; }
+  get walletMax() { return WORKER.max[this.workerLevel - 1]; }
+  get upgradeCost() {
+    return this.workerLevel < WORKER.income.length ? WORKER.cost[this.workerLevel - 1] : null;
+  }
+  get cannonReady() { return this.cannonCharge >= CANNON.chargeFrames; }
+  get cannonRatio() { return Math.min(1, this.cannonCharge / CANNON.chargeFrames); }
+
+  unitLevel(id) { return (this.save.levels && this.save.levels[id]) || 1; }
+
+  unitCost(id) { return UNIT_BY_ID[id].cost; }
+
+  canDeploy(id) {
+    if (this.result) return false;
+    const u = UNIT_BY_ID[id];
+    return this.cool[id] <= 0 && this.money >= u.cost && this.allies.length < DEPLOY_LIMIT;
+  }
+
+  /* ---------------------------------------------------------- 操作 */
+  deploy(id) {
+    if (!this.canDeploy(id)) return false;
+    const u = UNIT_BY_ID[id];
+    this.money -= u.cost;
+    this.cool[id] = u.cooldown;
+    const f = new Fighter(u, 'ally', SPAWN_MARGIN + Math.random() * 20, this.unitLevel(id));
+    f.row = this.allies.length % 4;
+    this.allies.push(f);
+    this.fx('spawn', f.x, 0);
+    return true;
+  }
+
+  upgradeWorker() {
+    const cost = this.upgradeCost;
+    if (this.result || cost == null || this.money < cost) return false;
+    this.money -= cost;
+    this.workerLevel++;
+    this.fx('worker', this.allyCastle.x, 0);
+    return true;
+  }
+
+  fireCannon() {
+    if (this.result || !this.cannonReady) return false;
+    this.cannonCharge = 0;
+    const level = (this.save.cannonLevel || 1);
+    const dmg = CANNON.damage * (1 + (level - 1) * 0.25);
+    const reach = this.allyCastle.x + CANNON.range;
+    this.effects.push({ type: 'cannon', x: this.allyCastle.x, x2: reach, t: 0, life: 34 });
+    for (const f of this.foes) {
+      if (f.x <= reach) {
+        this.damage(f, dmg, null);
+        if (!f.dead) this.knockback(f, CANNON.knockback);
+      }
+    }
+    return true;
+  }
+
+  retreat() {
+    if (!this.result) { this.result = 'lose'; this.resultFrame = this.frame; }
+  }
+
+  /* ---------------------------------------------------------- 1フレーム */
+  tick() {
+    if (this.result && this.frame - this.resultFrame > 90) return;
+    this.frame++;
+
+    // お金・キャノン・リチャージ
+    this.money = Math.min(this.walletMax, this.money + this.income / FPS);
+    if (!this.cannonReady) this.cannonCharge++;
+    for (const id in this.cool) if (this.cool[id] > 0) this.cool[id]--;
+
+    if (!this.result) this.runSpawners();
+
+    if (this.allyCastle.flash > 0) this.allyCastle.flash--;
+    if (this.foeCastle.flash > 0) this.foeCastle.flash--;
+
+    for (const f of this.allies) this.step(f, this.foes, this.foeCastle);
+    for (const f of this.foes) this.step(f, this.allies, this.allyCastle);
+
+    this.cleanup();
+    this.updateEffects();
+
+    if (!this.result) {
+      if (this.foeCastle.hp <= 0) { this.result = 'win'; this.resultFrame = this.frame; }
+      else if (this.allyCastle.hp <= 0) { this.result = 'lose'; this.resultFrame = this.frame; }
+    }
+    this.stats.peakFoes = Math.max(this.stats.peakFoes, this.foes.length);
+  }
+
+  /* ---------------------------------------------------------- 敵の湧き */
+  runSpawners() {
+    const now = this.time;
+    for (const sp of this.spawners) {
+      if (!sp.armed) continue;
+      const origin = sp.boss ? this.bossTime : 0;
+      let guard = 0;
+      while (sp.fired < sp.count && guard++ < 20) {
+        const due = origin + sp.base + sp.t0 + sp.fired * sp.interval;
+        if (now < due) break;
+        this.spawnFoe(sp.def);
+        sp.fired++;
+      }
+      if (sp.fired >= sp.count && sp.loop && sp.cycle < sp.loopMax) {
+        const last = origin + sp.base + sp.t0 + (sp.count - 1) * sp.interval;
+        if (now >= last + sp.loopEvery) {
+          sp.base = last + sp.loopEvery - sp.t0 - origin;
+          sp.fired = 0;
+          sp.cycle++;
+        }
+      }
+    }
+  }
+
+  spawnFoe(def) {
+    const f = new Fighter(def, 'foe', this.length - SPAWN_MARGIN - Math.random() * 20, 1);
+    f.row = this.foes.length % 4;
+    this.foes.push(f);
+    this.stats.spawned++;
+  }
+
+  triggerBoss() {
+    if (this.bossTriggered) return;
+    this.bossTriggered = true;
+    this.bossTime = this.time;
+    for (const sp of this.spawners) if (sp.boss) sp.armed = true;
+    this.effects.push({ type: 'alert', t: 0, life: 120 });
+  }
+
+  /* ---------------------------------------------------------- 個体の更新 */
+  step(f, foes, castle) {
+    if (f.dead) return;
+    f.anim += 1;
+    if (f.flash > 0) f.flash--;
+
+    if (f.state === 'kb') {
+      f.kbT--;
+      const p = 1 - f.kbT / f.kbDur;
+      f.x = f.kbFrom + (f.kbTo - f.kbFrom) * easeOut(p);
+      if (f.kbT <= 0) { f.state = 'walk'; f.timer = 0; }
+      return;
+    }
+
+    if (f.state === 'attack') {
+      f.timer++;
+      if (!f.didHit && f.timer >= f.fore) {
+        f.didHit = true;
+        this.resolveHit(f, foes, castle);
+      }
+      if (f.timer >= f.rate) { f.state = 'walk'; f.timer = 0; f.didHit = false; }
+      return;
+    }
+
+    // walk : 射程内に敵がいれば攻撃開始、いなければ前進
+    if (this.hasTarget(f, foes, castle)) {
+      if (f.atk > 0 || f.def.id === 'tank') {
+        f.state = 'attack'; f.timer = 0; f.didHit = false;
+        return;
+      }
+      return; // 攻撃力0で足止めだけする個体（ブロック像など）はその場で停止
+    }
+    f.x += f.dir * f.speed / FPS;
+    // 城より先には行かない
+    if (f.dir > 0) f.x = Math.min(f.x, castle.x);
+    else f.x = Math.max(f.x, castle.x);
+  }
+
+  hasTarget(f, foes, castle) {
+    const [lo, hi] = f.reach();
+    if (castle.hp > 0 && castle.x >= lo && castle.x <= hi) return true;
+    for (const o of foes) if (!o.dead && o.x >= lo && o.x <= hi) return true;
+    return false;
+  }
+
+  /* ダメージ判定の瞬間。範囲攻撃なら射程内全部、単体なら最前線1体。 */
+  resolveHit(f, foes, castle) {
+    const [lo, hi] = f.reach();
+    const list = [];
+    for (const o of foes) if (!o.dead && o.x >= lo && o.x <= hi) list.push(o);
+
+    // 進行方向にいちばん近い順
+    list.sort((a, b) => (a.x - f.x) * f.dir - (b.x - f.x) * f.dir);
+
+    const castleInRange = castle.hp > 0 && castle.x >= lo && castle.x <= hi;
+
+    if (list.length === 0) {
+      if (castleInRange) this.hitCastle(f, castle);
+      return;
+    }
+
+    const targets = f.area ? list : [list[0]];
+    for (const t of targets) this.damage(t, this.calcDamage(f, t), f);
+    // 範囲攻撃は城も巻き込む
+    if (castleInRange && (f.area || list.length === 0)) this.hitCastle(f, castle);
+
+    this.fx('slash', f.x + f.dir * (f.range * 0.5), 0, f.side, f.area);
+  }
+
+  hitCastle(f, castle) {
+    const dmg = f.atk;
+    castle.hp = Math.max(0, castle.hp - dmg);
+    castle.flash = 8;
+    this.fx('slash', castle.x, 0, f.side, false);
+    this.effects.push({ type: 'dmg', x: castle.x, y: 60, v: Math.round(dmg), t: 0, life: 40, side: f.side });
+    if (castle === this.foeCastle) this.triggerBoss();
+  }
+
+  calcDamage(f, target) {
+    let m = 1;
+    const tt = target.traits || [];
+    if (f.strong.some(t => tt.includes(t))) m *= 1.6;
+    if (f.massive.some(t => tt.includes(t))) m *= 3.0;
+    return f.atk * m;
+  }
+
+  damage(target, amount, attacker) {
+    if (target.dead) return;
+    // 「対〇〇」持ちは、その属性の敵から受けるダメージを軽減する
+    if (attacker) {
+      const at = attacker.traits || [];
+      if ((target.strong || []).some(t => at.includes(t))) amount *= 0.55;
+    }
+    const before = target.hp;
+    target.hp -= amount;
+    target.flash = 6;
+
+    if (this.effects.length < 70) {
+      this.effects.push({
+        type: 'dmg', x: target.x + (Math.random() - 0.5) * 40, y: 50 + Math.random() * 26,
+        v: Math.round(amount), t: 0, life: 36, side: target.side === 'ally' ? 'foe' : 'ally',
+      });
+    }
+
+    if (target.hp <= 0) { this.kill(target); return; }
+
+    // ノックバック判定：HPをkb等分した境界を跨いだか
+    const seg = target.segment;
+    const idxBefore = Math.ceil(before / seg);
+    const idxAfter = Math.ceil(target.hp / seg);
+    if (idxAfter < idxBefore) this.knockback(target, 190 + Math.random() * 40);
+  }
+
+  knockback(f, dist) {
+    f.state = 'kb';
+    f.kbDur = 26;
+    f.kbT = 26;
+    f.kbFrom = f.x;
+    let to = f.x - f.dir * dist;
+    // 自陣の城より後ろには下がらない
+    if (f.dir > 0) to = Math.max(to, SPAWN_MARGIN * 0.4);
+    else to = Math.min(to, this.length - SPAWN_MARGIN * 0.4);
+    f.kbTo = to;
+    f.didHit = false;
+    f.timer = 0;
+  }
+
+  kill(f) {
+    f.dead = true;
+    f.hp = 0;
+    this.fx('pop', f.x, 0, f.side);
+    if (f.side === 'foe') {
+      this.stats.killed++;
+      this.stats.xp += f.def.xp || 0;
+      const gain = f.def.money || 0;
+      this.money = Math.min(this.walletMax, this.money + gain);
+      if (gain) this.effects.push({ type: 'coin', x: f.x, t: 0, life: 46, v: gain });
+    }
+  }
+
+  cleanup() {
+    this.allies = this.allies.filter(f => !f.dead);
+    this.foes = this.foes.filter(f => !f.dead);
+  }
+
+  /* ---------------------------------------------------------- 演出 */
+  fx(type, x, y, side, big) {
+    this.effects.push({ type, x, y: y || 0, side, big: !!big, t: 0, life: type === 'pop' ? 26 : 18 });
+  }
+
+  updateEffects() {
+    for (const e of this.effects) e.t++;
+    this.effects = this.effects.filter(e => e.t < e.life);
+  }
+
+  /* ---------------------------------------------------------- 集計 */
+  summary() {
+    return {
+      result: this.result,
+      time: this.time,
+      killed: this.stats.killed,
+      xp: this.result === 'win' ? this.stage.xp + this.stats.xp : Math.floor(this.stats.xp * 0.3),
+    };
+  }
+}
+
+function easeOut(p) { return 1 - Math.pow(1 - Math.min(1, Math.max(0, p)), 2.2); }
+
+</script>
+<script>
+/* ===========================================================================
+ *  描画。画像素材は一切使わず、すべて Canvas のパスで描く。
+ *  ワールド座標  : x は 0（自城）〜 stage.length（敵城）、y は地面を 0 として上が正。
+ * ======================================================================== */
+
+/* 拡大率は「高さ」と「最低限見せたい横幅」の両方から決める。
+   縦長のスマホでも横に広がりすぎず、横長のPCでも寄りすぎない。 */
+const VIEW_H = 420;      // 基準となるワールド高さ
+const VIEW_W_MIN = 440;  // 最低これだけの横幅はワールド座標で見せる
+
+const THEMES = {
+  grass:    { sky: ['#7ec8f2', '#d8f0ff'], far: '#8fc98a', mid: '#6db05f', ground: '#5aa04d', soil: '#7d5a3c', deco: 'tree' },
+  swamp:    { sky: ['#93b7a6', '#d6e7d5'], far: '#6d9377', ground: '#4f7a55', soil: '#4a4030', deco: 'reed' },
+  cave:     { sky: ['#241d33', '#3d3350'], far: '#2f2743', ground: '#4a3f58', soil: '#332b3f', deco: 'rock', cave: true },
+  mountain: { sky: ['#9fb8dd', '#e0eaf7'], far: '#8d93a8', ground: '#79705f', soil: '#5c5344', deco: 'rock' },
+  castle:   { sky: ['#3b2a4a', '#7a4a5e'], far: '#3a2f45', ground: '#514358', soil: '#3a3040', deco: 'flag' },
+};
+
+const Render = {
+  canvas: null, ctx: null, w: 0, h: 0, dpr: 1,
+  camX: 0, camTarget: 0, manualUntil: 0, shake: 0,
+
+  init(canvas) {
+    this.canvas = canvas;
+    this.ctx = canvas.getContext('2d');
+    this.resize();
+    window.addEventListener('resize', () => this.resize());
+  },
+
+  resize() {
+    const r = this.canvas.getBoundingClientRect();
+    this.dpr = Math.min(window.devicePixelRatio || 1, 2);
+    this.w = Math.max(320, r.width);
+    this.h = Math.max(200, r.height);
+    this.canvas.width = Math.round(this.w * this.dpr);
+    this.canvas.height = Math.round(this.h * this.dpr);
+  },
+
+  get scale() { return Math.min(this.h / VIEW_H, this.w / VIEW_W_MIN); },
+  get viewW() { return this.w / this.scale; },
+  get groundY() { return this.h * 0.72; },
+
+  worldToScreenX(x) { return (x - this.camX) * this.scale; },
+  screenToWorldX(sx) { return sx / this.scale + this.camX; },
+
+  /* -------------------------------------------------------------- カメラ */
+  updateCamera(b, dt) {
+    const half = this.viewW / 2;
+    const now = performance.now();
+    // 基本は「自軍の最前線」を追う。敵が近ければ両者の中間に寄せる。
+    const frontAlly = b.allies.length ? Math.max(...b.allies.map(f => f.x)) : b.allyCastle.x + 120;
+    const frontFoe = b.foes.length ? Math.min(...b.foes.map(f => f.x)) : b.foeCastle.x;
+    const gap = frontFoe - frontAlly;
+    const focus = gap < this.viewW * 0.75
+      ? (frontAlly + frontFoe) / 2
+      : frontAlly + this.viewW * 0.18;
+
+    if (now > this.manualUntil) {
+      this.camTarget = focus - half;
+      this.camX += (this.camTarget - this.camX) * Math.min(1, dt * 3.5);
+    }
+    this.clampCam(b);
+    if (this.shake > 0) this.shake *= 0.88;
+  },
+
+  clampCam(b) {
+    const max = Math.max(0, b.length - this.viewW);
+    this.camX = Math.max(-40, Math.min(max + 40, this.camX));
+  },
+
+  panBy(dx, b) {
+    this.camX -= dx / this.scale;
+    this.manualUntil = performance.now() + 4000;
+    this.clampCam(b);
+  },
+
+  /* -------------------------------------------------------------- 本体 */
+  draw(b) {
+    const ctx = this.ctx;
+    ctx.save();
+    ctx.scale(this.dpr, this.dpr);
+    ctx.clearRect(0, 0, this.w, this.h);
+
+    const th = THEMES[b.stage.theme] || THEMES.grass;
+    this.drawSky(th);
+
+    ctx.save();
+    if (this.shake > 0.4) {
+      ctx.translate((Math.random() - 0.5) * this.shake, (Math.random() - 0.5) * this.shake);
+    }
+
+    this.drawBackground(th, b);
+    this.drawGround(th, b);
+    this.drawCastle(b.foeCastle, b, th, false);
+    this.drawCastle(b.allyCastle, b, th, true);
+
+    // 奥→手前。row が大きいほど手前。
+    const all = b.allies.concat(b.foes);
+    all.sort((a, c) => (a.row - c.row) || (a.x - c.x));
+    for (const f of all) this.drawFighter(f, b);
+
+    this.drawEffects(b);
+    ctx.restore();
+    ctx.restore();
+  },
+
+  drawSky(th) {
+    const ctx = this.ctx;
+    const g = ctx.createLinearGradient(0, 0, 0, this.groundY);
+    g.addColorStop(0, th.sky[0]);
+    g.addColorStop(1, th.sky[1]);
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, this.w, this.groundY + 2);
+
+    if (th.cave) {
+      // 洞窟：天井の鍾乳石
+      ctx.fillStyle = 'rgba(0,0,0,.35)';
+      const par = this.camX * 0.12;
+      for (let i = -1; i < 24; i++) {
+        const x = i * 96 - (par % 96);
+        const h = 26 + ((i * 37) % 40);
+        ctx.beginPath(); ctx.moveTo(x - 16, -2); ctx.lineTo(x, h); ctx.lineTo(x + 16, -2); ctx.closePath(); ctx.fill();
+      }
+      return;
+    }
+    // 雲
+    const par = this.camX * 0.08;
+    ctx.fillStyle = 'rgba(255,255,255,.72)';
+    const gapC = 180;
+    for (let i = -1; i < Math.ceil(this.w / gapC) + 4; i++) {
+      const x = i * gapC - (par % gapC);
+      if (x < -140 || x > this.w + 140) continue;
+      const y = this.groundY * (0.08 + ((i * 13) % 9) / 15);
+      const s = (0.7 + ((i * 7) % 5) / 8) * Math.max(1, this.scale * 0.8);
+      // ひとつのパスにまとめて塗る（重なりで色が濃くならないように）
+      ctx.beginPath();
+      ctx.arc(x, y, 26 * s, 0, Math.PI * 2);
+      ctx.moveTo(x + 50 * s, y + 6 * s);
+      ctx.arc(x + 30 * s, y + 6 * s, 20 * s, 0, Math.PI * 2);
+      ctx.moveTo(x - 11 * s, y + 8 * s);
+      ctx.arc(x - 28 * s, y + 8 * s, 17 * s, 0, Math.PI * 2);
+      ctx.rect(x - 28 * s, y, 58 * s, 14 * s);
+      ctx.fill();
+    }
+  },
+
+  drawBackground(th, b) {
+    const ctx = this.ctx;
+    const gy = this.groundY;
+    const hillH = Math.max(110, gy * 0.42);
+
+    // 最遠景の山脈
+    ctx.fillStyle = shade(th.far, 0.78);
+    const parM = this.camX * 0.06;
+    ctx.beginPath();
+    ctx.moveTo(-10, gy);
+    for (let i = -1; i < 12; i++) {
+      const cx = i * 440 - (parM % 440);
+      ctx.lineTo(cx + 110, gy - hillH * (0.95 + (i % 2) * 0.3));
+      ctx.lineTo(cx + 260, gy - hillH * 0.55);
+      ctx.lineTo(cx + 380, gy - hillH * 0.85);
+      ctx.lineTo(cx + 440, gy);
+    }
+    ctx.lineTo(this.w + 10, gy); ctx.closePath(); ctx.fill();
+
+    // 遠景の丘（パララックス2層）
+    ctx.fillStyle = shade(th.far, 0.82);
+    const parA = this.camX * 0.14;
+    ctx.beginPath();
+    ctx.moveTo(-10, gy);
+    for (let i = -1; i < 16; i++) {
+      const cx = i * 300 - (parA % 300);
+      ctx.quadraticCurveTo(cx + 90, gy - hillH * 1.25, cx + 300, gy);
+    }
+    ctx.lineTo(this.w + 10, gy); ctx.closePath(); ctx.fill();
+
+    ctx.fillStyle = th.far;
+    const par = this.camX * 0.3;
+    ctx.beginPath();
+    ctx.moveTo(-10, gy);
+    for (let i = -1; i < 20; i++) {
+      const cx = i * 210 - (par % 210);
+      ctx.quadraticCurveTo(cx + 60, gy - hillH * (0.62 + (i % 3) * 0.16), cx + 210, gy);
+    }
+    ctx.lineTo(this.w + 10, gy); ctx.closePath(); ctx.fill();
+
+    // 中景の装飾
+    const gap = 190 * this.scale;
+    const par2 = this.camX * 0.55 * this.scale;
+    ctx.globalAlpha = 0.9;
+    for (let i = -1; i < Math.ceil(this.w / gap) + 3; i++) {
+      const cx = i * gap - (par2 % gap);
+      if (cx < -120 || cx > this.w + 120) continue;
+      this.drawDeco(th, cx, gy, i);
+    }
+    ctx.globalAlpha = 1;
+  },
+
+  drawDeco(th, x, gy, i) {
+    const ctx = this.ctx;
+    const s = (0.85 + (i % 3) * 0.2) * this.scale;
+    ctx.save();
+    ctx.translate(x, gy);
+    ctx.scale(s, s);
+    if (th.deco === 'tree') {
+      ctx.fillStyle = '#6b4a2f';
+      ctx.fillRect(-5, -46, 10, 46);
+      ctx.fillStyle = '#4e9944';
+      circle(ctx, 0, -60, 30); ctx.fill();
+      circle(ctx, -22, -46, 20); ctx.fill();
+      circle(ctx, 22, -46, 20); ctx.fill();
+    } else if (th.deco === 'reed') {
+      ctx.strokeStyle = '#4e7a4a'; ctx.lineWidth = 4; ctx.lineCap = 'round';
+      for (let k = -2; k <= 2; k++) {
+        ctx.beginPath(); ctx.moveTo(k * 9, 0);
+        ctx.quadraticCurveTo(k * 9 + 6, -30, k * 9 + 2, -56); ctx.stroke();
+      }
+    } else if (th.deco === 'rock') {
+      ctx.fillStyle = 'rgba(0,0,0,.22)';
+      ctx.beginPath();
+      ctx.moveTo(-30, 0); ctx.lineTo(-12, -40); ctx.lineTo(8, -22);
+      ctx.lineTo(26, -52); ctx.lineTo(40, 0); ctx.closePath(); ctx.fill();
+    } else if (th.deco === 'flag') {
+      ctx.fillStyle = '#2b2233'; ctx.fillRect(-4, -80, 8, 80);
+      ctx.fillStyle = '#a8385a';
+      ctx.beginPath(); ctx.moveTo(4, -80); ctx.lineTo(46, -68); ctx.lineTo(4, -56); ctx.closePath(); ctx.fill();
+    }
+    ctx.restore();
+  },
+
+  drawGround(th, b) {
+    const ctx = this.ctx;
+    const gy = this.groundY;
+    ctx.fillStyle = th.ground;
+    ctx.fillRect(0, gy, this.w, this.h - gy);
+    ctx.fillStyle = th.soil;
+    ctx.fillRect(0, gy + 14, this.w, this.h - gy - 14);
+    ctx.fillStyle = 'rgba(0,0,0,.10)';
+    ctx.fillRect(0, gy, this.w, 4);
+
+    // 地面のディテール（進んでいる感じを出すための目印）
+    const step = 60;
+    const start = Math.floor(this.camX / step) * step;
+    for (let x = start; x < this.camX + this.viewW + step; x += step) {
+      const sx = this.worldToScreenX(x);
+      const k = ((x / step) | 0) % 4;
+      ctx.fillStyle = 'rgba(255,255,255,.10)';
+      ctx.fillRect(sx, gy + 3 + k, 3 * this.scale, 2 * this.scale);
+      ctx.fillStyle = 'rgba(0,0,0,.10)';
+      ctx.fillRect(sx + 18 * this.scale, gy + 22 + k * 3, 10 * this.scale, 2 * this.scale);
+    }
+  },
+
+  /* -------------------------------------------------------------- 城 */
+  drawCastle(c, b, th, isAlly) {
+    const ctx = this.ctx;
+    const s = this.scale;
+    const gy = this.groundY;
+    const sx = this.worldToScreenX(c.x);
+    if (sx < -400 || sx > this.w + 400) return;
+
+    ctx.save();
+    ctx.translate(sx, gy);
+    ctx.scale(s * (isAlly ? 1 : -1), s);   // どちらの城も「自陣の外側」に向かって建つ
+    const dead = c.hp <= 0;
+    const wob = dead ? 0 : Math.sin(b.frame * 0.04) * 1.5;
+
+    const body = isAlly ? '#f4efe4' : (b.stage.theme === 'castle' ? '#3d3348' : '#6a5a4a');
+    const trim = isAlly ? '#e0563f' : '#2f2733';
+
+    // 土台
+    ctx.fillStyle = 'rgba(0,0,0,.20)';
+    ellipse(ctx, -18, 2, 96, 12); ctx.fill();
+
+    ctx.save();
+    ctx.translate(0, wob);
+    const tower = () => roundRect(ctx, -132, -180, 118, 180, 8);
+    const roof = () => {
+      ctx.beginPath();
+      ctx.moveTo(-142, -178); ctx.lineTo(-73, -238); ctx.lineTo(-4, -178); ctx.closePath();
+    };
+    // 塔本体
+    ctx.fillStyle = body;
+    ctx.strokeStyle = 'rgba(0,0,0,.35)';
+    ctx.lineWidth = 3;
+    tower(); ctx.fill(); ctx.stroke();
+    // 屋根
+    ctx.fillStyle = trim;
+    roof(); ctx.fill(); ctx.stroke();
+    // 被弾の光（形に沿わせる。連打されても白飛びしないよう薄く）
+    if (c.flash > 0) {
+      ctx.globalAlpha = Math.min(0.3, c.flash / 26);
+      ctx.fillStyle = '#fff';
+      tower(); ctx.fill();
+      roof(); ctx.fill();
+      ctx.globalAlpha = 1;
+    }
+    // 窓
+    ctx.fillStyle = 'rgba(0,0,0,.45)';
+    roundRect(ctx, -96, -150, 46, 40, 6); ctx.fill();
+    if (isAlly) {
+      // 自城には肉球マーク
+      ctx.fillStyle = '#e0563f';
+      circle(ctx, -73, -84, 16); ctx.fill();
+      for (let i = 0; i < 3; i++) { circle(ctx, -92 + i * 19, -108, 6); ctx.fill(); }
+    } else {
+      ctx.fillStyle = '#c23b52';
+      ctx.beginPath();
+      ctx.moveTo(-88, -96); ctx.lineTo(-58, -96); ctx.lineTo(-73, -66); ctx.closePath(); ctx.fill();
+    }
+    ctx.restore();
+
+    ctx.restore();
+  },
+
+  /* -------------------------------------------------------------- 個体 */
+  drawFighter(f, b) {
+    const ctx = this.ctx;
+    const s = this.scale;
+    const sx = this.worldToScreenX(f.x) + (f.jitter || 0) * this.scale;
+    if (sx < -200 || sx > this.w + 200) return;
+
+    const rowLift = f.row * 3;
+    const gy = this.groundY + rowLift;
+
+    // モーション量
+    let lean = 0, hop = 0, rot = 0;
+    if (f.state === 'walk') {
+      hop = Math.abs(Math.sin(f.anim * 0.16)) * 3;
+    } else if (f.state === 'attack') {
+      const p = f.timer / f.rate;
+      const q = f.fore / f.rate;
+      if (p < q) lean = -6 * (p / q);                    // 溜め
+      else lean = 14 * Math.max(0, 1 - (p - q) / 0.28);  // 踏み込み
+    } else if (f.state === 'kb') {
+      const p = 1 - f.kbT / f.kbDur;
+      hop = Math.sin(p * Math.PI) * 34;
+      rot = Math.sin(p * Math.PI) * 0.9 * -f.dir;
+    }
+
+    const sc = (f.def.scale || 1) * 1.0;
+
+    ctx.save();
+    ctx.translate(sx, gy);
+    // 影
+    ctx.fillStyle = 'rgba(0,0,0,.22)';
+    ellipse(ctx, 0, 0, 22 * sc * s, 6 * sc * s); ctx.fill();
+
+    ctx.translate((lean * f.dir) * s, -hop * s);
+    ctx.rotate(rot);
+    ctx.scale(s * f.dir * sc, s * sc);
+
+    if (f.flash > 0) {           // 被弾した瞬間だけ少し膨らませる
+      const k = 1 + f.flash * 0.014;
+      ctx.scale(k, k);
+    }
+    const art = ART[f.def.art] || ART.cat;
+    art(ctx, f, b);
+    ctx.restore();
+
+    // HPバーは敵のみ表示（味方は密集するので出すと見づらい）
+    if (f.side === 'foe' && f.hp < f.maxHp) {
+      const w = 30 * s * Math.min(1.5, sc), hgt = 3;
+      const bx = sx - w / 2, by = gy - (74 * sc + hop) * s - 6;
+      ctx.fillStyle = 'rgba(0,0,0,.5)';
+      ctx.fillRect(bx - 1, by - 1, w + 2, hgt + 2);
+      ctx.fillStyle = f.def.boss ? '#ffca3a' : '#e5646d';
+      ctx.fillRect(bx, by, w * Math.max(0, f.hp / f.maxHp), hgt);
+    }
+  },
+
+  /* -------------------------------------------------------------- 演出 */
+  drawEffects(b) {
+    const ctx = this.ctx;
+    const s = this.scale;
+    const gy = this.groundY;
+
+    for (const e of b.effects) {
+      const p = e.t / e.life;
+      if (e.type === 'slash') {
+        const sx = this.worldToScreenX(e.x);
+        ctx.save();
+        ctx.translate(sx, gy - 34 * s);
+        ctx.globalAlpha = 1 - p;
+        ctx.strokeStyle = e.side === 'ally' ? '#fff2a8' : '#ffb4b4';
+        ctx.lineWidth = (e.big ? 7 : 4) * s;
+        ctx.lineCap = 'round';
+        const r = (e.big ? 40 : 24) * s * (0.6 + p * 0.9);
+        ctx.beginPath();
+        ctx.arc(0, 0, r, -1.0, 0.8);
+        ctx.stroke();
+        ctx.restore();
+      } else if (e.type === 'pop') {
+        const sx = this.worldToScreenX(e.x);
+        ctx.save();
+        ctx.globalAlpha = 1 - p;
+        ctx.fillStyle = e.side === 'ally' ? '#ffffff' : '#ffd9d9';
+        for (let i = 0; i < 6; i++) {
+          const a = (i / 6) * Math.PI * 2;
+          const d = (10 + p * 34) * s;
+          circle(ctx, sx + Math.cos(a) * d, gy - 30 * s + Math.sin(a) * d * 0.6, (7 - p * 6) * s);
+          ctx.fill();
+        }
+        ctx.restore();
+      } else if (e.type === 'dmg') {
+        const sx = this.worldToScreenX(e.x);
+        ctx.save();
+        ctx.globalAlpha = Math.min(1, (1 - p) * 2);
+        ctx.font = `bold ${Math.round(15 * Math.min(1.4, s))}px system-ui, sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = 'rgba(0,0,0,.6)';
+        ctx.fillStyle = e.side === 'ally' ? '#ffe066' : '#ff8f8f';
+        const y = gy - (e.y || 50) * s - p * 28;
+        ctx.strokeText(e.v, sx, y);
+        ctx.fillText(e.v, sx, y);
+        ctx.restore();
+      } else if (e.type === 'coin') {
+        const sx = this.worldToScreenX(e.x);
+        ctx.save();
+        ctx.globalAlpha = 1 - p;
+        ctx.fillStyle = '#ffcf3f';
+        ctx.strokeStyle = '#a8760f'; ctx.lineWidth = 2;
+        const y = gy - 40 * s - p * 40 * s;
+        circle(ctx, sx, y, 9 * s); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = '#a8760f';
+        ctx.font = `bold ${Math.round(10 * s)}px system-ui`;
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText('¢', sx, y + 1);
+        ctx.restore();
+      } else if (e.type === 'cannon') {
+        const x1 = this.worldToScreenX(e.x), x2 = this.worldToScreenX(e.x2);
+        ctx.save();
+        ctx.globalAlpha = Math.max(0, 1 - p) * 0.9;
+        const g = ctx.createLinearGradient(x1, 0, x2, 0);
+        g.addColorStop(0, 'rgba(255,255,255,.95)');
+        g.addColorStop(0.6, 'rgba(120,210,255,.75)');
+        g.addColorStop(1, 'rgba(120,210,255,0)');
+        ctx.fillStyle = g;
+        const hh = (46 - p * 20) * s;
+        ctx.fillRect(x1, gy - 46 * s - hh / 2, x2 - x1, hh);
+        ctx.restore();
+        this.shake = Math.max(this.shake, 10);
+      } else if (e.type === 'worker') {
+        const sx = this.worldToScreenX(e.x);
+        ctx.save();
+        ctx.globalAlpha = 1 - p;
+        ctx.strokeStyle = '#7fe0a0'; ctx.lineWidth = 3 * s;
+        circle(ctx, sx, gy - 40 * s, (10 + p * 40) * s); ctx.stroke();
+        ctx.restore();
+      }
+    }
+  },
+};
+
+/* ====================================================================== */
+/*  キャラ描画。すべて「足元が原点・右向き」でパスを描く。               */
+/* ====================================================================== */
+
+/* #rrggbb を k 倍の明るさにする（背景の階層分け用） */
+function shade(hex, k) {
+  const n = parseInt(hex.slice(1), 16);
+  const c = [(n >> 16) & 255, (n >> 8) & 255, n & 255]
+    .map(v => Math.max(0, Math.min(255, Math.round(v * k))));
+  return `rgb(${c[0]},${c[1]},${c[2]})`;
+}
+
+function circle(ctx, x, y, r) { ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); }
+function ellipse(ctx, x, y, rx, ry) { ctx.beginPath(); ctx.ellipse(x, y, Math.abs(rx), Math.abs(ry), 0, 0, Math.PI * 2); }
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+
+const OUT = '#2b2430';
+
+function outline(ctx, w) { ctx.strokeStyle = OUT; ctx.lineWidth = w || 3; ctx.stroke(); }
+
+/* 目・口（顔の共通パーツ） */
+function catFace(ctx, y, opt) {
+  opt = opt || {};
+  ctx.fillStyle = opt.eye || OUT;
+  const ex = opt.ex || 8;
+  circle(ctx, -ex, y, opt.er || 2.6); ctx.fill();
+  circle(ctx, ex, y, opt.er || 2.6); ctx.fill();
+  // ω口
+  ctx.strokeStyle = OUT; ctx.lineWidth = 1.8; ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.arc(-2.6, y + 7, 2.8, 0, Math.PI);
+  ctx.arc(2.6, y + 7, 2.8, 0, Math.PI);
+  ctx.stroke();
+}
+
+function legs(ctx, f, y, color) {
+  const sw = f.state === 'walk' ? Math.sin(f.anim * 0.16) * 5 : 0;
+  ctx.fillStyle = color;
+  roundRect(ctx, -13 + sw, y, 11, 9, 4); ctx.fill(); outline(ctx, 2.2);
+  roundRect(ctx, 3 - sw, y, 11, 9, 4); ctx.fill(); outline(ctx, 2.2);
+}
+
+function tail(ctx, f, x, y, color) {
+  const w = Math.sin(f.anim * 0.1) * 8;
+  ctx.strokeStyle = color; ctx.lineWidth = 5; ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(x, y);
+  ctx.quadraticCurveTo(x - 16, y - 10 + w, x - 12, y - 26 + w);
+  ctx.stroke();
+  ctx.strokeStyle = OUT; ctx.lineWidth = 1.2; ctx.stroke();
+}
+
+/* 攻撃モーションの進み具合 0→1 */
+function swing(f) {
+  if (f.state !== 'attack') return 0;
+  const p = f.timer / f.rate, q = f.fore / f.rate;
+  return p < q ? -(p / q) * 0.6 : Math.max(0, 1 - (p - q) / 0.3);
+}
+
+const ART = {
+  /* ------------------------------------------------------------ 自軍 */
+  cat(ctx, f) {
+    const white = '#fbfaf6';
+    tail(ctx, f, -14, -26, white);
+    legs(ctx, f, -9, white);
+    // 耳
+    ctx.fillStyle = white;
+    ctx.beginPath(); ctx.moveTo(-16, -52); ctx.lineTo(-10, -70); ctx.lineTo(-3, -54); ctx.closePath(); ctx.fill(); outline(ctx, 2.4);
+    ctx.beginPath(); ctx.moveTo(3, -54); ctx.lineTo(10, -70); ctx.lineTo(16, -52); ctx.closePath(); ctx.fill(); outline(ctx, 2.4);
+    // 胴＝頭 一体型
+    ctx.fillStyle = white;
+    roundRect(ctx, -19, -58, 38, 50, 16); ctx.fill(); outline(ctx, 3);
+    catFace(ctx, -38);
+    // 前足（攻撃で前に出る）
+    const s = swing(f);
+    ctx.fillStyle = white;
+    roundRect(ctx, 12 + s * 12, -30 - s * 6, 12, 10, 5); ctx.fill(); outline(ctx, 2.2);
+  },
+
+  tank(ctx, f) {
+    const white = '#f6f3ea';
+    tail(ctx, f, -16, -26, white);
+    legs(ctx, f, -9, white);
+    ctx.fillStyle = white;
+    roundRect(ctx, -21, -60, 42, 52, 16); ctx.fill(); outline(ctx, 3);
+    catFace(ctx, -40, { ex: 7 });
+    // ヘルメット
+    ctx.fillStyle = '#8e9aa8';
+    ctx.beginPath(); ctx.arc(0, -56, 20, Math.PI, 0); ctx.closePath(); ctx.fill(); outline(ctx, 2.6);
+    ctx.fillStyle = '#5f6b78'; ctx.fillRect(-20, -58, 40, 6); outline(ctx, 1.6);
+    // 盾
+    const s = swing(f);
+    ctx.save(); ctx.translate(18 + s * 8, -34); ctx.rotate(s * 0.2);
+    ctx.fillStyle = '#c9b072';
+    roundRect(ctx, -6, -22, 14, 44, 6); ctx.fill(); outline(ctx, 2.6);
+    ctx.fillStyle = '#8a7440'; roundRect(ctx, -2, -12, 6, 24, 3); ctx.fill();
+    ctx.restore();
+  },
+
+  cow(ctx, f) {
+    const white = '#fdfcf7';
+    tail(ctx, f, -16, -24, white);
+    legs(ctx, f, -9, white);
+    ctx.fillStyle = white;
+    roundRect(ctx, -20, -58, 40, 50, 16); ctx.fill(); outline(ctx, 3);
+    // ぶち模様
+    ctx.fillStyle = '#3b3440';
+    ellipse(ctx, -10, -20, 8, 6); ctx.fill();
+    ellipse(ctx, 9, -30, 6, 5); ctx.fill();
+    // 角
+    ctx.fillStyle = '#efe2b8';
+    ctx.beginPath(); ctx.moveTo(-18, -54); ctx.quadraticCurveTo(-28, -66, -18, -70); ctx.quadraticCurveTo(-14, -62, -12, -54); ctx.closePath(); ctx.fill(); outline(ctx, 2);
+    ctx.beginPath(); ctx.moveTo(18, -54); ctx.quadraticCurveTo(28, -66, 18, -70); ctx.quadraticCurveTo(14, -62, 12, -54); ctx.closePath(); ctx.fill(); outline(ctx, 2);
+    catFace(ctx, -38, { ex: 8 });
+    const s = swing(f);
+    ctx.fillStyle = white;
+    roundRect(ctx, 13 + s * 16, -28 - s * 8, 13, 10, 5); ctx.fill(); outline(ctx, 2.2);
+  },
+
+  axe(ctx, f) {
+    const white = '#fbfaf6';
+    tail(ctx, f, -16, -26, white);
+    legs(ctx, f, -9, white);
+    ctx.fillStyle = white;
+    roundRect(ctx, -20, -60, 40, 52, 16); ctx.fill(); outline(ctx, 3);
+    // バンダナ
+    ctx.fillStyle = '#e04f4f';
+    ctx.beginPath(); ctx.moveTo(-20, -28); ctx.lineTo(20, -28); ctx.lineTo(14, -20); ctx.lineTo(-14, -20); ctx.closePath(); ctx.fill(); outline(ctx, 2);
+    ctx.fillStyle = white;
+    ctx.beginPath(); ctx.moveTo(-18, -54); ctx.lineTo(-11, -72); ctx.lineTo(-4, -56); ctx.closePath(); ctx.fill(); outline(ctx, 2.4);
+    ctx.beginPath(); ctx.moveTo(4, -56); ctx.lineTo(11, -72); ctx.lineTo(18, -54); ctx.closePath(); ctx.fill(); outline(ctx, 2.4);
+    catFace(ctx, -40);
+    // 斧
+    const s = swing(f);
+    ctx.save();
+    ctx.translate(16, -40);
+    ctx.rotate(-0.9 + s * 2.1);
+    ctx.strokeStyle = '#8a5f36'; ctx.lineWidth = 5; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, -30); ctx.stroke();
+    ctx.fillStyle = '#cfd6de';
+    ctx.beginPath();
+    ctx.moveTo(-2, -30); ctx.quadraticCurveTo(20, -38, 16, -14); ctx.quadraticCurveTo(6, -18, -2, -16);
+    ctx.closePath(); ctx.fill(); outline(ctx, 2.4);
+    ctx.restore();
+  },
+
+  shroom(ctx, f) {
+    const body = '#f2ecff';
+    tail(ctx, f, -18, -26, body);
+    legs(ctx, f, -9, body);
+    ctx.fillStyle = body;
+    roundRect(ctx, -22, -56, 44, 48, 16); ctx.fill(); outline(ctx, 3);
+    catFace(ctx, -36, { ex: 9 });
+    // キノコの傘
+    ctx.fillStyle = '#8e5cd8';
+    ctx.beginPath(); ctx.ellipse(0, -56, 30, 20, 0, Math.PI, 0); ctx.closePath(); ctx.fill(); outline(ctx, 2.8);
+    ctx.fillStyle = '#f3e9ff';
+    circle(ctx, -14, -62, 5); ctx.fill();
+    circle(ctx, 6, -66, 6); ctx.fill();
+    circle(ctx, 19, -58, 4); ctx.fill();
+    // 胞子
+    const s = swing(f);
+    if (s > 0.1) {
+      ctx.globalAlpha = s * 0.7; ctx.fillStyle = '#b98cf0';
+      for (let i = 0; i < 5; i++) { circle(ctx, 24 + i * 9, -46 + Math.sin(i + f.anim * 0.3) * 10, 5 * s); ctx.fill(); }
+      ctx.globalAlpha = 1;
+    }
+  },
+
+  bird(ctx, f) {
+    const body = '#fff9e8';
+    const flap = Math.sin(f.anim * 0.3) * 10;
+    // 翼（後ろ）
+    ctx.fillStyle = '#ffd98a';
+    ctx.beginPath(); ctx.moveTo(-8, -44); ctx.quadraticCurveTo(-34, -56 - flap, -30, -30); ctx.quadraticCurveTo(-18, -34, -8, -36); ctx.closePath(); ctx.fill(); outline(ctx, 2.2);
+    legs(ctx, f, -9, '#ffcf6a');
+    ctx.fillStyle = body;
+    roundRect(ctx, -17, -56, 34, 48, 15); ctx.fill(); outline(ctx, 3);
+    // くちばし
+    ctx.fillStyle = '#f2a33c';
+    ctx.beginPath(); ctx.moveTo(16, -40); ctx.lineTo(28, -35); ctx.lineTo(16, -30); ctx.closePath(); ctx.fill(); outline(ctx, 2);
+    ctx.fillStyle = OUT;
+    circle(ctx, 6, -42, 2.8); ctx.fill();
+    circle(ctx, -6, -42, 2.6); ctx.fill();
+    // 前翼
+    ctx.fillStyle = '#ffe6a8';
+    ctx.beginPath(); ctx.moveTo(8, -46); ctx.quadraticCurveTo(28, -58 + flap, 24, -28); ctx.quadraticCurveTo(14, -34, 8, -38); ctx.closePath(); ctx.fill(); outline(ctx, 2.2);
+  },
+
+  lizard(ctx, f) {
+    const body = '#a8e08a';
+    tail(ctx, f, -16, -22, body);
+    legs(ctx, f, -9, body);
+    ctx.fillStyle = body;
+    roundRect(ctx, -19, -54, 38, 46, 14); ctx.fill(); outline(ctx, 3);
+    // 長い口
+    ctx.fillStyle = body;
+    roundRect(ctx, 12, -42, 22, 12, 6); ctx.fill(); outline(ctx, 2.4);
+    ctx.fillStyle = OUT; circle(ctx, 4, -44, 2.8); ctx.fill();
+    // 背びれ
+    ctx.fillStyle = '#7cc45f';
+    for (let i = 0; i < 3; i++) {
+      ctx.beginPath(); ctx.moveTo(-16 + i * 9, -54); ctx.lineTo(-11 + i * 9, -66); ctx.lineTo(-6 + i * 9, -54); ctx.closePath(); ctx.fill(); outline(ctx, 1.8);
+    }
+    // 発射口
+    const s = swing(f);
+    ctx.fillStyle = '#5e5a66';
+    roundRect(ctx, 14 + s * 6, -30, 26, 9, 4); ctx.fill(); outline(ctx, 2.2);
+    if (s > 0.5) { ctx.fillStyle = '#ffe9a8'; circle(ctx, 44, -26, 7 * s); ctx.fill(); }
+  },
+
+  titan(ctx, f) {
+    const white = '#fdfbf4';
+    tail(ctx, f, -20, -30, white);
+    // 太い足
+    const sw = f.state === 'walk' ? Math.sin(f.anim * 0.12) * 5 : 0;
+    ctx.fillStyle = white;
+    roundRect(ctx, -20 + sw, -12, 17, 13, 6); ctx.fill(); outline(ctx, 2.6);
+    roundRect(ctx, 4 - sw, -12, 17, 13, 6); ctx.fill(); outline(ctx, 2.6);
+    ctx.fillStyle = white;
+    roundRect(ctx, -26, -66, 52, 58, 18); ctx.fill(); outline(ctx, 3.4);
+    // 耳
+    ctx.beginPath(); ctx.moveTo(-24, -60); ctx.lineTo(-16, -82); ctx.lineTo(-6, -62); ctx.closePath(); ctx.fill(); outline(ctx, 2.8);
+    ctx.beginPath(); ctx.moveTo(6, -62); ctx.lineTo(16, -82); ctx.lineTo(24, -60); ctx.closePath(); ctx.fill(); outline(ctx, 2.8);
+    // 怒り顔
+    ctx.strokeStyle = OUT; ctx.lineWidth = 3; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(-16, -50); ctx.lineTo(-6, -46); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(16, -50); ctx.lineTo(6, -46); ctx.stroke();
+    ctx.fillStyle = OUT;
+    circle(ctx, -11, -41, 3.4); ctx.fill();
+    circle(ctx, 11, -41, 3.4); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(-8, -28); ctx.quadraticCurveTo(0, -20, 8, -28); ctx.stroke();
+    // 腕
+    const s = swing(f);
+    ctx.fillStyle = white;
+    ctx.save(); ctx.translate(22, -46); ctx.rotate(-0.6 + s * 1.6);
+    roundRect(ctx, 0, -8, 30, 16, 8); ctx.fill(); outline(ctx, 2.8);
+    ctx.restore();
+  },
+
+  /* ------------------------------------------------------------ 敵 */
+  doge(ctx, f) {
+    const red = f.traits.includes('red');
+    const body = red ? '#e8615c' : '#e8c98c';
+    const dark = red ? '#b8403c' : '#c2a069';
+    legs(ctx, f, -9, dark);
+    ctx.fillStyle = body;
+    roundRect(ctx, -20, -56, 40, 48, 16); ctx.fill(); outline(ctx, 3);
+    // 垂れ耳
+    ctx.fillStyle = dark;
+    roundRect(ctx, -26, -54, 12, 22, 6); ctx.fill(); outline(ctx, 2.2);
+    roundRect(ctx, 14, -54, 12, 22, 6); ctx.fill(); outline(ctx, 2.2);
+    // 鼻先
+    ctx.fillStyle = '#fff6e6';
+    ellipse(ctx, 12, -30, 12, 9); ctx.fill(); outline(ctx, 2.2);
+    ctx.fillStyle = OUT; circle(ctx, 20, -32, 3); ctx.fill();
+    circle(ctx, -4, -42, 3); ctx.fill();
+    circle(ctx, 8, -44, 3); ctx.fill();
+    const s = swing(f);
+    if (s > 0.3) { // 牙
+      ctx.fillStyle = '#fff';
+      ctx.beginPath(); ctx.moveTo(14, -28); ctx.lineTo(20, -18); ctx.lineTo(8, -22); ctx.closePath(); ctx.fill();
+    }
+  },
+
+  snake(ctx, f) {
+    const g = '#7fbf6a';
+    const wob = Math.sin(f.anim * 0.14) * 5;
+    ctx.strokeStyle = g; ctx.lineWidth = 15; ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(-24, -8);
+    ctx.quadraticCurveTo(-8, -20 + wob, 2, -34);
+    ctx.quadraticCurveTo(10, -48 - wob, 6, -58);
+    ctx.stroke();
+    ctx.strokeStyle = OUT; ctx.lineWidth = 2; ctx.stroke();
+    ctx.fillStyle = g;
+    ellipse(ctx, 6, -62, 15, 12); ctx.fill(); outline(ctx, 2.6);
+    ctx.fillStyle = OUT;
+    circle(ctx, 2, -65, 2.6); ctx.fill();
+    circle(ctx, 12, -65, 2.6); ctx.fill();
+    const s = swing(f);
+    ctx.strokeStyle = '#e04f6a'; ctx.lineWidth = 2.4;
+    ctx.beginPath(); ctx.moveTo(18, -58); ctx.lineTo(28 + s * 10, -56); ctx.stroke();
+  },
+
+  bat(ctx, f) {
+    const p = '#a98bd6';
+    const flap = Math.sin(f.anim * 0.34) * 14;
+    ctx.save();
+    ctx.translate(0, -30 + Math.sin(f.anim * 0.1) * 4);   // 浮遊
+    ctx.fillStyle = '#8b6cc4';
+    ctx.beginPath(); ctx.moveTo(-6, -34); ctx.quadraticCurveTo(-38, -44 - flap, -34, -16); ctx.quadraticCurveTo(-18, -24, -6, -26); ctx.closePath(); ctx.fill(); outline(ctx, 2.2);
+    ctx.beginPath(); ctx.moveTo(6, -34); ctx.quadraticCurveTo(38, -44 + flap, 34, -16); ctx.quadraticCurveTo(18, -24, 6, -26); ctx.closePath(); ctx.fill(); outline(ctx, 2.2);
+    ctx.fillStyle = p;
+    roundRect(ctx, -14, -44, 28, 34, 13); ctx.fill(); outline(ctx, 2.8);
+    ctx.fillStyle = p;
+    ctx.beginPath(); ctx.moveTo(-13, -42); ctx.lineTo(-9, -56); ctx.lineTo(-2, -44); ctx.closePath(); ctx.fill(); outline(ctx, 2);
+    ctx.beginPath(); ctx.moveTo(2, -44); ctx.lineTo(9, -56); ctx.lineTo(13, -42); ctx.closePath(); ctx.fill(); outline(ctx, 2);
+    ctx.fillStyle = '#ffe066';
+    circle(ctx, -5, -32, 3); ctx.fill();
+    circle(ctx, 5, -32, 3); ctx.fill();
+    ctx.restore();
+  },
+
+  statue(ctx, f) {
+    ctx.fillStyle = '#9a9490';
+    roundRect(ctx, -26, -70, 52, 70, 8); ctx.fill(); outline(ctx, 3.2);
+    ctx.fillStyle = '#7d7773';
+    roundRect(ctx, -30, -12, 60, 14, 5); ctx.fill(); outline(ctx, 2.6);
+    // ひび
+    ctx.strokeStyle = 'rgba(0,0,0,.3)'; ctx.lineWidth = 2;
+    const cracks = 1 - f.hp / f.maxHp;
+    if (cracks > 0.2) { ctx.beginPath(); ctx.moveTo(-14, -66); ctx.lineTo(-4, -46); ctx.lineTo(-12, -30); ctx.stroke(); }
+    if (cracks > 0.55) { ctx.beginPath(); ctx.moveTo(16, -62); ctx.lineTo(6, -44); ctx.lineTo(18, -24); ctx.stroke(); }
+    ctx.fillStyle = OUT;
+    roundRect(ctx, -14, -52, 10, 6, 3); ctx.fill();
+    roundRect(ctx, 4, -52, 10, 6, 3); ctx.fill();
+    ctx.strokeStyle = OUT; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(-10, -30); ctx.lineTo(10, -30); ctx.stroke();
+  },
+
+  gorilla(ctx, f) {
+    const dark = '#4a4450';
+    const face = '#c4a58c';
+    const s = swing(f);
+    // 腕
+    ctx.fillStyle = dark;
+    ctx.save(); ctx.translate(-16, -52); ctx.rotate(0.4 - s * 1.4);
+    roundRect(ctx, -10, 0, 18, 44, 9); ctx.fill(); outline(ctx, 2.6); ctx.restore();
+    legs(ctx, f, -12, dark);
+    ctx.fillStyle = dark;
+    roundRect(ctx, -26, -72, 52, 62, 20); ctx.fill(); outline(ctx, 3.2);
+    ctx.fillStyle = face;
+    ellipse(ctx, 2, -50, 20, 17); ctx.fill(); outline(ctx, 2.4);
+    ctx.fillStyle = OUT;
+    circle(ctx, -5, -54, 3); ctx.fill();
+    circle(ctx, 9, -54, 3); ctx.fill();
+    ctx.strokeStyle = OUT; ctx.lineWidth = 2.4;
+    ctx.beginPath(); ctx.arc(2, -44, 7, 0.2, Math.PI - 0.2); ctx.stroke();
+    ctx.fillStyle = dark;
+    ctx.save(); ctx.translate(20, -54); ctx.rotate(-0.3 + s * 1.6);
+    roundRect(ctx, -8, 0, 18, 46, 9); ctx.fill(); outline(ctx, 2.6); ctx.restore();
+  },
+
+  hippo(ctx, f) {
+    const red = f.traits.includes('red');
+    const body = red ? '#d95a58' : '#9fa8bd';
+    const dark = red ? '#a83f43' : '#7b869c';
+    legs(ctx, f, -12, dark);
+    ctx.fillStyle = body;
+    roundRect(ctx, -32, -66, 64, 56, 22); ctx.fill(); outline(ctx, 3.4);
+    // 耳
+    ctx.fillStyle = dark;
+    circle(ctx, -18, -66, 7); ctx.fill(); outline(ctx, 2);
+    circle(ctx, 12, -68, 7); ctx.fill(); outline(ctx, 2);
+    const s = swing(f);
+    // 口（攻撃で開く）
+    const open = 6 + s * 22;
+    ctx.fillStyle = '#f2b8bd';
+    ctx.save(); ctx.translate(24, -34);
+    roundRect(ctx, -6, -open / 2, 26, open, 8); ctx.fill(); outline(ctx, 2.6);
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(6, -open / 2 + 1, 5, 5);
+    ctx.fillRect(14, -open / 2 + 1, 5, 5);
+    ctx.restore();
+    ctx.fillStyle = OUT;
+    circle(ctx, 14, -54, 3.4); ctx.fill();
+    circle(ctx, -2, -51, 3.4); ctx.fill();
+  },
+
+  general(ctx, f) {
+    const s = swing(f);
+    // マント
+    ctx.fillStyle = '#7a1f34';
+    ctx.beginPath();
+    ctx.moveTo(-10, -76); ctx.quadraticCurveTo(-52, -50, -40, -4);
+    ctx.lineTo(-8, -10); ctx.closePath(); ctx.fill(); outline(ctx, 2.6);
+    legs(ctx, f, -12, '#211c2a');
+    ctx.fillStyle = '#2b2436';
+    roundRect(ctx, -28, -78, 56, 68, 20); ctx.fill(); outline(ctx, 3.4);
+    // 肩当て
+    ctx.fillStyle = '#4a4258';
+    ellipse(ctx, -24, -66, 14, 11); ctx.fill(); outline(ctx, 2.4);
+    ellipse(ctx, 24, -66, 14, 11); ctx.fill(); outline(ctx, 2.4);
+    // 角
+    ctx.fillStyle = '#c9a24a';
+    ctx.beginPath(); ctx.moveTo(-20, -74); ctx.lineTo(-26, -100); ctx.lineTo(-8, -78); ctx.closePath(); ctx.fill(); outline(ctx, 2.2);
+    ctx.beginPath(); ctx.moveTo(20, -74); ctx.lineTo(26, -100); ctx.lineTo(8, -78); ctx.closePath(); ctx.fill(); outline(ctx, 2.2);
+    // 赤い目
+    ctx.fillStyle = '#ff4a4a';
+    ctx.save(); ctx.translate(0, -52);
+    ctx.beginPath(); ctx.moveTo(-16, -6); ctx.lineTo(-3, -1); ctx.lineTo(-16, 4); ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(16, -6); ctx.lineTo(3, -1); ctx.lineTo(16, 4); ctx.closePath(); ctx.fill();
+    ctx.restore();
+    ctx.strokeStyle = '#c9a24a'; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(-10, -28); ctx.lineTo(10, -28); ctx.stroke();
+    // 剣
+    ctx.save(); ctx.translate(26, -56); ctx.rotate(-1.1 + s * 2.0);
+    ctx.fillStyle = '#dfe4ea';
+    ctx.beginPath(); ctx.moveTo(-4, 0); ctx.lineTo(4, 0); ctx.lineTo(6, -46); ctx.lineTo(0, -56); ctx.lineTo(-6, -46); ctx.closePath();
+    ctx.fill(); outline(ctx, 2.4);
+    ctx.fillStyle = '#c9a24a'; ctx.fillRect(-10, -2, 20, 6); outline(ctx, 2);
+    ctx.restore();
+  },
+};
+
+</script>
+<script>
+/* ===========================================================================
+ *  セーブデータ（localStorage）
+ * ======================================================================== */
+
+const SAVE_KEY = 'nyanko-wars-save-v1';
+
+const Save = {
+  data: null,
+
+  defaults() {
+    return {
+      version: 1,
+      xp: 0,
+      cleared: [],
+      owned: START_UNITS.slice(),
+      levels: Object.fromEntries(START_UNITS.map(id => [id, 1])),
+      cannonLevel: 1,
+      loadout: START_UNITS.slice(),
+      bestTime: {},
+      totalKills: 0,
+    };
+  },
+
+  load() {
+    try {
+      const raw = localStorage.getItem(SAVE_KEY);
+      this.data = raw ? Object.assign(this.defaults(), JSON.parse(raw)) : this.defaults();
+    } catch (e) {
+      this.data = this.defaults();
+    }
+    // 破損・旧版データの補修
+    for (const id of this.data.owned) if (!this.data.levels[id]) this.data.levels[id] = 1;
+    this.data.owned = this.data.owned.filter(id => UNIT_BY_ID[id]);
+    this.data.loadout = this.data.loadout.filter(id => this.data.owned.includes(id));
+    if (!this.data.loadout.length) this.data.loadout = this.data.owned.slice(0, 6);
+    return this.data;
+  },
+
+  save() {
+    try { localStorage.setItem(SAVE_KEY, JSON.stringify(this.data)); } catch (e) { /* 容量超過等は無視 */ }
+  },
+
+  reset() {
+    this.data = this.defaults();
+    this.save();
+  },
+
+  /* --------------------------------------------------------- 進行判定 */
+  isCleared(id) { return this.data.cleared.includes(id); },
+
+  isUnlocked(stageId) {
+    return stageId === 1 || this.isCleared(stageId - 1);
+  },
+
+  clearStage(stage, summary) {
+    const first = !this.isCleared(stage.id);
+    if (first) this.data.cleared.push(stage.id);
+    this.data.xp += summary.xp;
+    this.data.totalKills += summary.killed;
+    const t = this.data.bestTime[stage.id];
+    if (!t || summary.time < t) this.data.bestTime[stage.id] = summary.time;
+
+    let unlocked = null;
+    if (first && stage.unlock && !this.data.owned.includes(stage.unlock)) {
+      this.data.owned.push(stage.unlock);
+      this.data.levels[stage.unlock] = 1;
+      if (this.data.loadout.length < 6) this.data.loadout.push(stage.unlock);
+      unlocked = UNIT_BY_ID[stage.unlock];
+    }
+    this.save();
+    return { first, unlocked };
+  },
+
+  addXp(n) { this.data.xp += n; this.save(); },
+
+  /* --------------------------------------------------------- 強化 */
+  levelOf(id) { return this.data.levels[id] || 1; },
+
+  levelCost(level) { return Math.round(40 * Math.pow(level, 1.3) / 5) * 5; },
+
+  canLevelUp(id) {
+    const lv = this.levelOf(id);
+    return lv < LEVEL_MAX && this.data.xp >= this.levelCost(lv);
+  },
+
+  levelUp(id) {
+    if (!this.canLevelUp(id)) return false;
+    this.data.xp -= this.levelCost(this.levelOf(id));
+    this.data.levels[id] = this.levelOf(id) + 1;
+    this.save();
+    return true;
+  },
+
+  cannonCost() {
+    const lv = this.data.cannonLevel;
+    return lv >= 10 ? null : Math.round(180 * Math.pow(lv, 1.45) / 5) * 5;
+  },
+
+  canUpgradeCannon() {
+    const c = this.cannonCost();
+    return c != null && this.data.xp >= c;
+  },
+
+  upgradeCannon() {
+    if (!this.canUpgradeCannon()) return false;
+    this.data.xp -= this.cannonCost();
+    this.data.cannonLevel++;
+    this.save();
+    return true;
+  },
+
+  /* --------------------------------------------------------- 編成 */
+  toggleLoadout(id) {
+    const i = this.data.loadout.indexOf(id);
+    if (i >= 0) {
+      if (this.data.loadout.length <= 1) return false;
+      this.data.loadout.splice(i, 1);
+    } else {
+      if (this.data.loadout.length >= 6) return false;
+      this.data.loadout.push(id);
+    }
+    this.save();
+    return true;
+  },
+};
+
+</script>
+<script>
+/* ===========================================================================
+ *  画面遷移・リスト構築・戦闘HUD
+ * ======================================================================== */
+
+const $ = sel => document.querySelector(sel);
+const $$ = sel => Array.from(document.querySelectorAll(sel));
+
+/* キャラのアイコンを ART からその場で描く */
+function makeIcon(def, size, opts) {
+  opts = opts || {};
+  const c = document.createElement('canvas');
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  c.width = size * dpr; c.height = size * dpr;
+  c.style.width = size + 'px'; c.style.height = size + 'px';
+  const ctx = c.getContext('2d');
+  ctx.scale(dpr, dpr);
+
+  const fake = {
+    def, traits: def.traits || [], state: 'walk', anim: 12,
+    timer: 0, rate: 100, fore: 50, hp: 1, maxHp: 1, dir: 1, kb: 1,
+  };
+  const k = (size / 90) / (def.scale || 1) * (opts.zoom || 1);
+  ctx.save();
+  ctx.translate(size / 2, size * 0.94);
+  ctx.scale(k, k);
+  (ART[def.art] || ART.cat)(ctx, fake);
+  ctx.restore();
+  return c;
+}
+
+function fmt(n) { return Math.floor(n).toLocaleString('ja-JP'); }
+function mmss(t) {
+  const m = Math.floor(t / 60), s = Math.floor(t % 60);
+  return m + ':' + String(s).padStart(2, '0');
+}
+
+const UI = {
+  current: 'scr-title',
+  pendingStage: null,
+  bossShown: false,
+  unitBtns: [],
+
+  init() {
+    $$('[data-go]').forEach(b => b.addEventListener('click', () => this.show(b.dataset.go)));
+    $$('[data-close-modal]').forEach(b => b.addEventListener('click', () => this.closeModals()));
+
+    $('#btn-start').addEventListener('click', () => { this.buildStageList(); this.show('scr-map'); });
+    $('#btn-howto').addEventListener('click', () => this.openModal('modal-howto'));
+    $('#btn-reset').addEventListener('click', () => {
+      if (confirm('進行データをすべて消します。よろしいですか？')) { Save.reset(); location.reload(); }
+    });
+    $('#btn-open-upgrade').addEventListener('click', () => { this.buildUpgradeList(); this.show('scr-upgrade'); });
+    $('#btn-sortie').addEventListener('click', () => { this.closeModals(); Game.start(this.pendingStage); });
+
+    $('#btn-result-map').addEventListener('click', () => { this.closeModals(); this.buildStageList(); this.show('scr-map'); });
+    $('#btn-result-retry').addEventListener('click', () => { this.closeModals(); Game.start(Game.battle.stage); });
+    $('#btn-result-next').addEventListener('click', () => {
+      this.closeModals();
+      const next = STAGE_BY_ID[Game.battle.stage.id + 1];
+      if (next && Save.isUnlocked(next.id)) { this.buildStageList(); this.openTeam(next); this.show('scr-map'); }
+      else { this.buildStageList(); this.show('scr-map'); }
+    });
+
+    this.drawTitle();
+  },
+
+  /* --------------------------------------------------------- 画面 */
+  show(id) {
+    $$('.screen').forEach(s => s.classList.toggle('show', s.id === id));
+    this.current = id;
+    if (id === 'scr-map') $('#map-xp').textContent = fmt(Save.data.xp);
+    if (id === 'scr-upgrade') $('#up-xp').textContent = fmt(Save.data.xp);
+  },
+
+  openModal(id) { $('#' + id).classList.add('show'); },
+  closeModals() { $$('.modal').forEach(m => m.classList.remove('show')); },
+
+  /* --------------------------------------------------------- タイトル絵 */
+  drawTitle() {
+    const c = $('#title-canvas');
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    c.width = 360 * dpr; c.height = 200 * dpr;
+    c.style.width = '360px'; c.style.height = '200px';
+    const ctx = c.getContext('2d');
+    ctx.scale(dpr, dpr);
+    const cast = [
+      { def: UNIT_BY_ID.tank, x: 62, s: 1.0 },
+      { def: UNIT_BY_ID.cat, x: 128, s: 1.05 },
+      { def: ENEMY_BY_ID.doge, x: 236, s: 1.0, flip: true },
+      { def: ENEMY_BY_ID.hippo, x: 306, s: 0.95, flip: true },
+    ];
+    for (const m of cast) {
+      const fake = {
+        def: m.def, traits: m.def.traits || [], state: 'walk', anim: Math.random() * 30,
+        timer: 0, rate: 100, fore: 50, hp: 1, maxHp: 1, kb: 1,
+      };
+      ctx.save();
+      ctx.translate(m.x, 188);
+      ctx.fillStyle = 'rgba(0,0,0,.18)';
+      ctx.beginPath(); ctx.ellipse(0, 0, 26, 6, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.scale((m.flip ? -1 : 1) * 1.25 * m.s, 1.25 * m.s);
+      (ART[m.def.art] || ART.cat)(ctx, fake);
+      ctx.restore();
+    }
+  },
+
+  /* --------------------------------------------------------- ステージ一覧 */
+  buildStageList() {
+    const wrap = $('#stage-list');
+    wrap.innerHTML = '';
+    for (const st of STAGES) {
+      const unlocked = Save.isUnlocked(st.id);
+      const cleared = Save.isCleared(st.id);
+      const el = document.createElement('div');
+      el.className = 'stage-card' + (unlocked ? '' : ' locked') + (cleared ? ' cleared' : '');
+      const best = Save.data.bestTime[st.id];
+      const reward = st.unlock ? `初回クリアで「${UNIT_BY_ID[st.unlock].name}」解放` : `報酬 XP ${st.xp}`;
+      el.innerHTML = `
+        <div class="stage-no">${st.id}</div>
+        <div class="stage-meta">
+          <div class="n">${unlocked ? st.name : '？？？'}</div>
+          <div class="d">${unlocked ? reward : '前のステージをクリアで開放'}${best ? ' ・ 最速 ' + mmss(best) : ''}</div>
+        </div>
+        <div class="stage-flag">${cleared ? '🏳️' : unlocked ? '⚔️' : '🔒'}</div>`;
+      if (unlocked) el.addEventListener('click', () => this.openTeam(st));
+      wrap.appendChild(el);
+    }
+    $('#map-xp').textContent = fmt(Save.data.xp);
+  },
+
+  /* --------------------------------------------------------- 編成 */
+  openTeam(stage) {
+    this.pendingStage = stage;
+    $('#team-stage-name').textContent = `${stage.id}. ${stage.name}`;
+    $('#team-stage-info').textContent =
+      `自城 ${fmt(stage.baseHp)} / 敵城 ${fmt(stage.enemyBaseHp)} ・ 報酬 XP ${stage.xp}`;
+    this.renderTeam();
+    this.openModal('modal-team');
+  },
+
+  renderTeam() {
+    const wrap = $('#team-list');
+    wrap.innerHTML = '';
+    for (const id of Save.data.owned) {
+      const u = UNIT_BY_ID[id];
+      const on = Save.data.loadout.includes(id);
+      const el = document.createElement('div');
+      el.className = 'team-item' + (on ? ' on' : '');
+      el.appendChild(makeIcon(u, 52));
+      const n = document.createElement('div');
+      n.className = 'tn'; n.textContent = u.name;
+      const c = document.createElement('div');
+      c.className = 'tc'; c.textContent = `¢${u.cost} / Lv${Save.levelOf(id)}`;
+      el.appendChild(n); el.appendChild(c);
+      if (on) {
+        const s = document.createElement('div');
+        s.className = 'slot'; s.textContent = Save.data.loadout.indexOf(id) + 1;
+        el.appendChild(s);
+      }
+      el.addEventListener('click', () => { Save.toggleLoadout(id); this.renderTeam(); });
+      wrap.appendChild(el);
+    }
+    $('#team-count').textContent = Save.data.loadout.length;
+  },
+
+  /* --------------------------------------------------------- 強化画面 */
+  buildUpgradeList() {
+    const wrap = $('#upgrade-list');
+    wrap.innerHTML = '';
+
+    // ネコキャノン
+    const cc = document.createElement('div');
+    cc.className = 'up-card';
+    const cost = Save.cannonCost();
+    cc.innerHTML = `
+      <div class="up-icon" style="display:grid;place-items:center;font-size:28px">💥</div>
+      <div class="up-body">
+        <div class="up-name">ネコキャノン <span class="up-lv">Lv${Save.data.cannonLevel}</span></div>
+        <div class="up-stats">威力 ${fmt(CANNON.damage * (1 + (Save.data.cannonLevel - 1) * 0.25))} ・ 射程 ${CANNON.range} ・ 充填 25秒</div>
+        <div class="up-desc">敵をまとめて吹き飛ばす。押されている時の切り札。</div>
+      </div>
+      <div class="up-action">
+        <button class="btn sm accent" ${Save.canUpgradeCannon() ? '' : 'disabled'}>強化</button>
+        <span class="cost">${cost == null ? 'MAX' : 'XP ' + fmt(cost)}</span>
+      </div>`;
+    cc.querySelector('button').addEventListener('click', () => {
+      if (Save.upgradeCannon()) this.buildUpgradeList();
+    });
+    wrap.appendChild(cc);
+
+    for (const id of Save.data.owned) {
+      const u = UNIT_BY_ID[id];
+      const lv = Save.levelOf(id);
+      const m = 1 + (lv - 1) * LEVEL_STEP;
+      const cost = lv < LEVEL_MAX ? Save.levelCost(lv) : null;
+      const dps = (u.atk * m) / (u.rate / 60);
+      const tags = [];
+      if (u.area) tags.push('範囲');
+      (u.strong || []).forEach(t => tags.push('対' + TRAITS[t].label.replace('い敵', '').replace('てる敵', 'き')));
+
+      const el = document.createElement('div');
+      el.className = 'up-card';
+      const icon = makeIcon(u, 56);
+      const body = document.createElement('div');
+      body.className = 'up-body';
+      body.innerHTML = `
+        <div class="up-name">${u.name} <span class="up-lv">Lv${lv}</span>
+          ${tags.map(t => `<span class="up-tag">${t}</span>`).join('')}</div>
+        <div class="up-stats">
+          体力 ${fmt(u.hp * m)} ・ 攻撃 ${fmt(u.atk * m)} ・ DPS ${fmt(dps)}<br>
+          射程 ${u.range} ・ 速さ ${u.speed} ・ コスト ¢${u.cost} ・ 再出撃 ${(u.cooldown / 60).toFixed(1)}秒
+        </div>
+        <div class="up-desc">${u.desc}</div>`;
+      const act = document.createElement('div');
+      act.className = 'up-action';
+      const btn = document.createElement('button');
+      btn.className = 'btn sm';
+      btn.textContent = 'Lv UP';
+      btn.disabled = !Save.canLevelUp(id);
+      btn.addEventListener('click', () => { if (Save.levelUp(id)) this.buildUpgradeList(); });
+      const cs = document.createElement('span');
+      cs.className = 'cost';
+      cs.textContent = cost == null ? 'MAX' : 'XP ' + fmt(cost);
+      act.appendChild(btn); act.appendChild(cs);
+
+      const wrapIcon = document.createElement('div');
+      wrapIcon.className = 'up-icon';
+      wrapIcon.style.display = 'grid'; wrapIcon.style.placeItems = 'center';
+      wrapIcon.appendChild(icon);
+
+      el.appendChild(wrapIcon); el.appendChild(body); el.appendChild(act);
+      wrap.appendChild(el);
+    }
+    $('#up-xp').textContent = fmt(Save.data.xp);
+  },
+
+  /* --------------------------------------------------------- 戦闘HUD */
+  buildUnitBar(b) {
+    const bar = $('#unit-bar');
+    bar.innerHTML = '';
+    this.unitBtns = [];
+    b.loadout.forEach((id, i) => {
+      const u = UNIT_BY_ID[id];
+      const btn = document.createElement('button');
+      btn.className = 'unit-btn';
+      btn.innerHTML = `<span class="key">${i + 1}</span>`;
+      btn.appendChild(makeIcon(u, 44));
+      const cost = document.createElement('span');
+      cost.className = 'cost'; cost.textContent = u.cost;
+      const cd = document.createElement('div');
+      cd.className = 'cd';
+      btn.appendChild(cost); btn.appendChild(cd);
+      btn.addEventListener('click', () => Game.deploy(id));
+      bar.appendChild(btn);
+      this.unitBtns.push({ id, btn, cd, def: u });
+    });
+    this.bossShown = false;
+  },
+
+  syncHud(b) {
+    // 城HP
+    const a = Math.max(0, b.allyCastle.hp / b.allyCastle.maxHp);
+    const f = Math.max(0, b.foeCastle.hp / b.foeCastle.maxHp);
+    $('#hp-ally').style.width = (a * 100) + '%';
+    $('#hp-foe').style.width = (f * 100) + '%';
+    $('#hp-ally-txt').textContent = fmt(Math.max(0, b.allyCastle.hp));
+    $('#hp-foe-txt').textContent = fmt(Math.max(0, b.foeCastle.hp));
+    $('#hud-time').textContent = mmss(b.time);
+
+    // 財布
+    $('#wallet-fill').style.width = (b.money / b.walletMax * 100) + '%';
+    $('#wallet-txt').textContent = `${fmt(b.money)} / ${fmt(b.walletMax)}`;
+    const wc = b.upgradeCost;
+    const wbtn = $('#btn-worker');
+    $('#worker-lv').textContent = 'Lv' + b.workerLevel;
+    $('#worker-cost').textContent = wc == null ? 'MAX' : fmt(wc);
+    wbtn.disabled = wc == null || b.money < wc;
+
+    // 出撃ボタン
+    for (const ub of this.unitBtns) {
+      const cool = b.cool[ub.id];
+      ub.cd.style.height = (cool / ub.def.cooldown * 100) + '%';
+      const poor = b.money < ub.def.cost;
+      ub.btn.classList.toggle('poor', poor);
+      ub.btn.disabled = !!b.result;
+    }
+
+    // キャノン
+    const cbtn = $('#btn-cannon');
+    cbtn.classList.toggle('ready', b.cannonReady);
+    this.drawCannonRing(b.cannonRatio, b.cannonReady);
+
+    // ボス警告
+    if (b.bossTriggered && !this.bossShown) {
+      this.bossShown = true;
+      const el = $('#boss-alert');
+      el.classList.remove('show');
+      void el.offsetWidth;
+      el.classList.add('show');
+    }
+  },
+
+  drawCannonRing(ratio, ready) {
+    const c = $('#cannon-canvas');
+    if (!c._init) {
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      c.width = 46 * dpr; c.height = 46 * dpr;
+      c.style.width = '46px'; c.style.height = '46px';
+      c._dpr = dpr; c._init = true;
+    }
+    const ctx = c.getContext('2d');
+    ctx.setTransform(c._dpr, 0, 0, c._dpr, 0, 0);
+    ctx.clearRect(0, 0, 46, 46);
+    ctx.lineWidth = 5;
+    ctx.strokeStyle = 'rgba(255,255,255,.25)';
+    ctx.beginPath(); ctx.arc(23, 23, 17, 0, Math.PI * 2); ctx.stroke();
+    ctx.strokeStyle = ready ? '#ffe066' : '#8fd0ff';
+    ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.arc(23, 23, 17, -Math.PI / 2, -Math.PI / 2 + ratio * Math.PI * 2); ctx.stroke();
+    ctx.font = 'bold 15px system-ui';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#fff';
+    ctx.fillText(ready ? '!' : Math.floor(ratio * 100) + '', 23, 24);
+  },
+
+  /* --------------------------------------------------------- リザルト */
+  showResult(b) {
+    const win = b.result === 'win';
+    const s = b.summary();
+    let res = { first: false, unlocked: null };
+    if (win) {
+      res = Save.clearStage(b.stage, s);
+    } else {
+      Save.data.totalKills += s.killed;
+      Save.addXp(s.xp);   // 負けても撃破分のXPは少し入る
+    }
+
+    $('#result-title').textContent = win ? '勝利！' : '敗北…';
+    $('#result-body').innerHTML = `
+      <div class="row"><span>ステージ</span><span>${b.stage.id}. ${b.stage.name}</span></div>
+      <div class="row"><span>撃破数</span><span>${s.killed}</span></div>
+      <div class="row"><span>タイム</span><span>${mmss(s.time)}</span></div>
+      <div class="row"><span>獲得XP</span><b>+${fmt(s.xp)}</b></div>
+      <div class="row"><span>所持XP</span><span>${fmt(Save.data.xp)}</span></div>`;
+
+    const un = $('#result-unlock');
+    un.classList.remove('show');
+    un.innerHTML = '';
+    if (res.unlocked) {
+      un.classList.add('show');
+      un.innerHTML = `<div>新しい仲間！ <b>${res.unlocked.name}</b></div><div class="muted sm">${res.unlocked.desc}</div>`;
+      un.insertBefore(makeIcon(res.unlocked, 72), un.firstChild);
+    }
+
+    const next = STAGE_BY_ID[b.stage.id + 1];
+    $('#btn-result-next').style.display = (win && next) ? '' : 'none';
+    this.openModal('modal-result');
+  },
+};
+
+</script>
+<script>
+/* ===========================================================================
+ *  ゲームループと入力
+ * ======================================================================== */
+
+const Game = {
+  battle: null,
+  speed: 1,
+  paused: false,
+  acc: 0,
+  last: 0,
+  resultShown: false,
+  rafId: 0,
+
+  init() {
+    Save.load();
+    Render.init($('#field'));
+    UI.init();
+    this.bindBattleControls();
+    this.bindPointer();
+    this.bindKeys();
+    UI.show('scr-title');
+    this.loop(performance.now());
+  },
+
+  /* --------------------------------------------------------- 開始 */
+  start(stage) {
+    UI.closeModals();
+    UI.show('scr-battle');
+    // 表示直後にサイズが確定するので測り直す
+    requestAnimationFrame(() => Render.resize());
+
+    this.battle = new Battle(stage, Save.data.loadout, Save.data);
+    this.speed = 1;
+    this.paused = false;
+    this.acc = 0;
+    this.resultShown = false;
+    $('#btn-speed').textContent = '×1';
+    $('#btn-pause').textContent = 'Ⅱ';
+
+    Render.camX = 0;
+    Render.manualUntil = 0;
+    Render.shake = 0;
+    UI.buildUnitBar(this.battle);
+    UI.syncHud(this.battle);
+    Render.resize();
+  },
+
+  deploy(id) {
+    if (!this.battle || this.paused) return;
+    this.battle.deploy(id);
+  },
+
+  /* --------------------------------------------------------- 操作 */
+  bindBattleControls() {
+    $('#btn-speed').addEventListener('click', () => {
+      this.speed = this.speed >= 3 ? 1 : this.speed + 1;
+      $('#btn-speed').textContent = '×' + this.speed;
+    });
+    $('#btn-pause').addEventListener('click', () => {
+      this.paused = !this.paused;
+      $('#btn-pause').textContent = this.paused ? '▶' : 'Ⅱ';
+    });
+    $('#btn-retreat').addEventListener('click', () => {
+      if (!this.battle || this.battle.result) return;
+      if (confirm('撤退しますか？（敗北あつかいになります）')) this.battle.retreat();
+    });
+    $('#btn-worker').addEventListener('click', () => {
+      if (this.battle && !this.paused) this.battle.upgradeWorker();
+    });
+    $('#btn-cannon').addEventListener('click', () => {
+      if (this.battle && !this.paused) this.battle.fireCannon();
+    });
+  },
+
+  bindPointer() {
+    const c = $('#field');
+    let dragging = false, lastX = 0, moved = 0;
+    c.addEventListener('pointerdown', e => {
+      dragging = true; lastX = e.clientX; moved = 0;
+      c.setPointerCapture(e.pointerId);
+    });
+    c.addEventListener('pointermove', e => {
+      if (!dragging || !this.battle) return;
+      const dx = e.clientX - lastX;
+      lastX = e.clientX;
+      moved += Math.abs(dx);
+      if (moved > 4) Render.panBy(dx, this.battle);
+    });
+    const end = () => { dragging = false; };
+    c.addEventListener('pointerup', end);
+    c.addEventListener('pointercancel', end);
+    c.addEventListener('contextmenu', e => e.preventDefault());
+  },
+
+  bindKeys() {
+    window.addEventListener('keydown', e => {
+      if (UI.current !== 'scr-battle' || !this.battle) return;
+      const k = e.key.toLowerCase();
+      if (k >= '1' && k <= '6') {
+        const id = this.battle.loadout[+k - 1];
+        if (id) this.deploy(id);
+      } else if (k === ' ') {
+        e.preventDefault(); this.battle.fireCannon();
+      } else if (k === 'w') {
+        this.battle.upgradeWorker();
+      } else if (k === 'p') {
+        $('#btn-pause').click();
+      } else if (k === 's') {
+        $('#btn-speed').click();
+      }
+    });
+  },
+
+  /* --------------------------------------------------------- ループ */
+  loop(now) {
+    this.rafId = requestAnimationFrame(t => this.loop(t));
+    const dt = Math.min(0.1, (now - this.last) / 1000) || 0;
+    this.last = now;
+
+    if (UI.current !== 'scr-battle' || !this.battle) return;
+
+    const b = this.battle;
+    if (!this.paused) {
+      this.acc += dt * this.speed;
+      let steps = 0;
+      while (this.acc >= 1 / FPS && steps < 20) {
+        b.tick();
+        this.acc -= 1 / FPS;
+        steps++;
+      }
+      if (steps >= 20) this.acc = 0;   // 追いつけない時は捨てる
+    }
+
+    Render.updateCamera(b, dt);
+    Render.draw(b);
+    UI.syncHud(b);
+
+    if (b.result && !this.resultShown && b.frame - b.resultFrame > 60) {
+      this.resultShown = true;
+      UI.showResult(b);
+    }
+  },
+};
+
+window.addEventListener('load', () => Game.init());
+
+</script>
+</body>
+</html>

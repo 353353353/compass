@@ -29,7 +29,9 @@ html, body {
   overscroll-behavior: none;
 }
 
-#app { position: relative; height: 100%; width: 100%; overflow: hidden; }
+/* 100% ではなく dvh を使う。スマホのアドレスバー伸縮でも高さが破綻せず、
+   埋め込み（iframe）で親の高さが取れない場合も潰れない。 */
+#app { position: relative; height: 100vh; height: 100dvh; width: 100%; overflow: hidden; }
 
 .screen {
   position: absolute; inset: 0;

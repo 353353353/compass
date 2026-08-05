@@ -3,7 +3,17 @@
 『にゃんこ大戦争』系のリアルタイム・タワーディフェンスを、ブラウザだけで動くように作ったものです。
 画像・音声・外部ライブラリは一切使っていません。キャラも背景も全部 Canvas のパスで描いています。
 
-`nyanko/index.html` をブラウザで開けばそのまま遊べます（`file://` でも動きます）。
+## 遊ぶには
+
+- **`nyanko/standalone.html` をブラウザで開く** — 全部入りの1枚ファイル。ダウンロードしてダブルクリックでOK。
+  誰かに渡すならこれ1つで足ります。
+- **`nyanko/index.html` を開く** — 開発用の分割版。こちらも `file://` でそのまま動きます。
+
+`standalone.html` は自動生成ファイルです。ソースを直したら再生成してください。
+
+```
+node nyanko/build-standalone.js
+```
 
 ---
 
@@ -53,15 +63,17 @@
 
 ```
 nyanko/
-├── index.html      画面の骨組み（HUD は DOM、戦場だけ Canvas）
-├── style.css       UI
+├── index.html            画面の骨組み（HUD は DOM、戦場だけ Canvas）
+├── style.css             UI
+├── standalone.html       ↑を全部埋め込んだ配布用の1枚（自動生成）
+├── build-standalone.js   その生成スクリプト
 └── js/
-    ├── data.js     ユニット・敵・ステージ・経済の全データ
-    ├── engine.js   戦闘シミュレーション（描画に一切依存しない）
-    ├── render.js   Canvas 描画とキャラのベクター定義
-    ├── save.js     進行データ（localStorage）
-    ├── ui.js       画面遷移・リスト・戦闘HUD
-    └── main.js     ゲームループと入力
+    ├── data.js           ユニット・敵・ステージ・経済の全データ
+    ├── engine.js         戦闘シミュレーション（描画に一切依存しない）
+    ├── render.js         Canvas 描画とキャラのベクター定義
+    ├── save.js           進行データ（localStorage）
+    ├── ui.js             画面遷移・リスト・戦闘HUD
+    └── main.js           ゲームループと入力
 ```
 
 `engine.js` は DOM も Canvas も参照しません。そのため Node からそのまま読み込んで
