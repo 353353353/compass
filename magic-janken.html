@@ -1,0 +1,1323 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>叩いて被ってじゃんけんぽん 魔法版｜魔導じゃんけん</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;600;800&family=DM+Mono:wght@300;400;500&display=swap');
+
+  :root {
+    --ink: #0d0b1a;
+    --ink2: #16122b;
+    --paper: #f5f0e8;
+    --gold: #d9a441;
+    --gold-dim: #8a6a24;
+    --violet: #7b5cd6;
+    --violet-dim: #3a2a6b;
+    --cyan: #4fd3e8;
+    --pink: #e0578f;
+    --red: #e0483c;
+    --green: #4fc98a;
+    --muted: #8b86a3;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  html, body { height: 100%; }
+
+  body {
+    font-family: 'Shippori Mincho', serif;
+    background: var(--ink);
+    color: var(--paper);
+    min-height: 100%;
+    overflow: hidden;
+    position: relative;
+    user-select: none;
+  }
+
+  /* 星空・魔法陣の背景 */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(circle at 20% 15%, rgba(123,92,214,0.28), transparent 45%),
+      radial-gradient(circle at 82% 80%, rgba(79,211,232,0.16), transparent 42%),
+      radial-gradient(circle at 50% 50%, rgba(217,164,65,0.07), transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      radial-gradient(1px 1px at 12% 22%, rgba(255,255,255,.7), transparent),
+      radial-gradient(1px 1px at 78% 12%, rgba(255,255,255,.5), transparent),
+      radial-gradient(1px 1px at 33% 68%, rgba(255,255,255,.6), transparent),
+      radial-gradient(1px 1px at 62% 44%, rgba(255,255,255,.4), transparent),
+      radial-gradient(1px 1px at 88% 62%, rgba(255,255,255,.55), transparent),
+      radial-gradient(1px 1px at 7% 84%, rgba(255,255,255,.45), transparent),
+      radial-gradient(1px 1px at 48% 8%, rgba(255,255,255,.5), transparent),
+      radial-gradient(1px 1px at 92% 34%, rgba(255,255,255,.35), transparent);
+    animation: twinkle 4s ease-in-out infinite;
+    pointer-events: none;
+    z-index: 0;
+  }
+  @keyframes twinkle { 0%,100% { opacity: .55; } 50% { opacity: 1; } }
+
+  .app {
+    position: relative;
+    z-index: 1;
+    max-width: 480px;
+    margin: 0 auto;
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .screen { display: none; flex: 1; flex-direction: column; }
+  .screen.active { display: flex; }
+
+  /* ============ タイトル ============ */
+  #screen-title {
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 24px 20px;
+    gap: 22px;
+  }
+  .title-seal {
+    width: 108px; height: 108px;
+    display: grid; place-items: center;
+    border: 2px solid var(--gold);
+    border-radius: 50%;
+    font-size: 46px;
+    position: relative;
+    box-shadow: 0 0 28px rgba(217,164,65,.35), inset 0 0 22px rgba(217,164,65,.18);
+    animation: sealspin 18s linear infinite;
+  }
+  .title-seal::before {
+    content: '';
+    position: absolute; inset: 9px;
+    border: 1px dashed rgba(217,164,65,.5);
+    border-radius: 50%;
+  }
+  .title-seal > span { animation: sealspin 18s linear infinite reverse; }
+  @keyframes sealspin { to { transform: rotate(360deg); } }
+
+  h1 {
+    font-size: 15px;
+    letter-spacing: .22em;
+    color: var(--gold);
+    font-weight: 400;
+  }
+  .title-main {
+    font-size: 34px;
+    font-weight: 800;
+    letter-spacing: .1em;
+    line-height: 1.3;
+    text-shadow: 0 0 20px rgba(123,92,214,.6);
+  }
+  .title-main em {
+    font-style: normal;
+    color: var(--violet);
+    text-shadow: 0 0 24px rgba(123,92,214,.9);
+  }
+
+  .rules {
+    border: 1px solid rgba(217,164,65,.3);
+    background: rgba(22,18,43,.7);
+    padding: 16px 18px;
+    text-align: left;
+    font-size: 13px;
+    line-height: 1.95;
+    width: 100%;
+    max-width: 340px;
+  }
+  .rules b { color: var(--gold); font-weight: 600; }
+  .rules .k { color: var(--cyan); }
+  .rules .f { color: var(--pink); }
+
+  .btn {
+    font-family: inherit;
+    font-size: 17px;
+    font-weight: 600;
+    letter-spacing: .14em;
+    color: var(--ink);
+    background: linear-gradient(180deg, #f0d089, var(--gold));
+    border: none;
+    padding: 15px 46px;
+    cursor: pointer;
+    position: relative;
+    box-shadow: 0 0 24px rgba(217,164,65,.4);
+    transition: transform .12s, box-shadow .12s;
+  }
+  .btn:active { transform: translateY(2px) scale(.98); box-shadow: 0 0 12px rgba(217,164,65,.3); }
+  .btn.ghost {
+    background: transparent;
+    color: var(--gold);
+    border: 1px solid var(--gold-dim);
+    box-shadow: none;
+    font-size: 13px;
+    padding: 10px 26px;
+  }
+
+  .hint { font-size: 11px; color: var(--muted); letter-spacing: .08em; line-height: 1.8; }
+
+  /* ============ ゲーム画面 ============ */
+  #screen-game { padding: 10px 14px 14px; gap: 8px; }
+
+  .topbar {
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 10px; letter-spacing: .16em; color: var(--muted);
+  }
+  .topbar .stage-no { color: var(--gold); }
+  .icon-btn {
+    background: none; border: 1px solid rgba(139,134,163,.4); color: var(--muted);
+    font-family: inherit; font-size: 10px; padding: 3px 9px; cursor: pointer; letter-spacing: .1em;
+  }
+
+  /* 敵カード */
+  .enemy {
+    display: flex; align-items: center; gap: 12px;
+    border: 1px solid rgba(224,87,143,.35);
+    background: linear-gradient(180deg, rgba(224,87,143,.12), rgba(22,18,43,.6));
+    padding: 10px 12px;
+  }
+  .enemy-face {
+    width: 50px; height: 50px; flex: 0 0 50px;
+    display: grid; place-items: center;
+    font-size: 30px;
+    border: 1px solid rgba(224,87,143,.4);
+    background: rgba(13,11,26,.6);
+    transition: transform .1s;
+  }
+  .enemy-face.hurt { animation: enemyHurt .38s ease-out; }
+  @keyframes enemyHurt {
+    0% { transform: translateX(0) scale(1); filter: none; }
+    15% { transform: translateX(-9px) scale(1.12); filter: brightness(3) saturate(0); }
+    35% { transform: translateX(8px); filter: brightness(2.2) saturate(.4); }
+    60% { transform: translateX(-4px); }
+    100% { transform: translateX(0) scale(1); filter: none; }
+  }
+  .enemy-meta { flex: 1; min-width: 0; }
+  .enemy-name { font-size: 14px; font-weight: 600; letter-spacing: .06em; margin-bottom: 5px; }
+  .enemy-title { font-size: 9px; color: var(--muted); letter-spacing: .14em; margin-bottom: 6px; }
+
+  .bar {
+    height: 9px;
+    background: rgba(255,255,255,.09);
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,.12);
+  }
+  .bar > i {
+    display: block; height: 100%; width: 100%;
+    transition: width .45s cubic-bezier(.2,.8,.3,1);
+  }
+  .bar.foe > i { background: linear-gradient(90deg, #e0578f, #b3305f); }
+  .bar.me > i { background: linear-gradient(90deg, #4fd3e8, #2f8fd6); }
+  .bar.low > i { background: linear-gradient(90deg, #e0483c, #8b1f1f); animation: pulseLow .7s ease-in-out infinite; }
+  @keyframes pulseLow { 0%,100% { opacity: 1; } 50% { opacity: .45; } }
+  .bar-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px; color: var(--muted); letter-spacing: .05em;
+  }
+
+  /* 中央ステージ */
+  .stage {
+    flex: 1;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 10px;
+    position: relative;
+    min-height: 190px;
+  }
+
+  .caller {
+    font-size: 26px;
+    font-weight: 800;
+    letter-spacing: .18em;
+    min-height: 40px;
+    display: grid; place-items: center;
+    text-shadow: 0 0 18px rgba(217,164,65,.5);
+  }
+  .caller.pop { animation: callerPop .32s cubic-bezier(.2,1.4,.4,1); }
+  @keyframes callerPop {
+    from { transform: scale(.6); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+
+  .hands {
+    display: flex; align-items: center; justify-content: center; gap: 14px;
+    width: 100%;
+  }
+  .hand {
+    width: 84px; height: 84px;
+    display: grid; place-items: center;
+    font-size: 42px;
+    border: 1px solid rgba(217,164,65,.28);
+    background: rgba(22,18,43,.65);
+    position: relative;
+  }
+  .hand small {
+    position: absolute; bottom: 4px; left: 0; right: 0;
+    text-align: center; font-size: 8px; letter-spacing: .16em; color: var(--muted);
+  }
+  .hand.reveal { animation: handPop .3s cubic-bezier(.2,1.5,.4,1); }
+  @keyframes handPop {
+    from { transform: scale(.5) rotate(-14deg); }
+    to { transform: scale(1) rotate(0); }
+  }
+  .hand.win-glow { border-color: var(--gold); box-shadow: 0 0 22px rgba(217,164,65,.55); }
+  .vs { font-size: 11px; letter-spacing: .2em; color: var(--muted); }
+
+  .verdict {
+    font-size: 15px; letter-spacing: .16em; min-height: 24px;
+    display: grid; place-items: center; text-align: center;
+  }
+  .verdict.win { color: var(--gold); }
+  .verdict.lose { color: var(--pink); }
+  .verdict.draw { color: var(--muted); }
+
+  /* 反転魔法の演出 */
+  .flip-seal {
+    position: absolute; inset: 0;
+    display: grid; place-items: center;
+    pointer-events: none;
+    opacity: 0;
+  }
+  .flip-seal.on { animation: flipIn .62s ease-out; }
+  @keyframes flipIn {
+    0% { opacity: 0; transform: scale(.4) rotate(-40deg); }
+    30% { opacity: 1; transform: scale(1.15) rotate(6deg); }
+    70% { opacity: 1; transform: scale(1) rotate(0); }
+    100% { opacity: 0; transform: scale(1.5); }
+  }
+  .flip-seal span {
+    font-size: 46px; font-weight: 800; letter-spacing: .3em;
+    color: var(--violet);
+    text-shadow: 0 0 30px rgba(123,92,214,1), 0 0 60px rgba(123,92,214,.7);
+    border: 3px solid var(--violet);
+    border-radius: 50%;
+    width: 190px; height: 190px;
+    display: grid; place-items: center;
+    background: radial-gradient(circle, rgba(123,92,214,.28), transparent 70%);
+  }
+
+  /* タイマーの帯 */
+  .timer {
+    width: 100%; height: 4px; background: rgba(255,255,255,.08);
+    overflow: hidden;
+  }
+  .timer > i {
+    display: block; height: 100%; width: 100%;
+    background: linear-gradient(90deg, var(--gold), var(--red));
+    transform-origin: left center;
+  }
+
+  /* プレイヤーHUD */
+  .me-hud { display: flex; align-items: center; gap: 10px; }
+  .me-hud .who { font-size: 11px; letter-spacing: .14em; color: var(--cyan); flex: 0 0 auto; }
+  .me-hud .bar { flex: 1; }
+
+  .charge {
+    display: flex; gap: 4px; align-items: center;
+    font-size: 9px; letter-spacing: .14em; color: var(--muted);
+  }
+  .orb {
+    width: 11px; height: 11px; border-radius: 50%;
+    border: 1px solid rgba(217,164,65,.45);
+    background: rgba(255,255,255,.05);
+  }
+  .orb.on {
+    background: radial-gradient(circle at 35% 30%, #fff3cf, var(--gold));
+    box-shadow: 0 0 10px rgba(217,164,65,.9);
+  }
+  .charge.full { color: var(--gold); animation: pulseLow .8s ease-in-out infinite; }
+
+  /* コントロール */
+  .pad { display: grid; gap: 8px; }
+  .pad.janken { grid-template-columns: repeat(3, 1fr); }
+  .pad.action { grid-template-columns: repeat(2, 1fr); }
+  .pad[hidden] { display: none; }
+
+  .key {
+    font-family: inherit;
+    color: var(--paper);
+    background: rgba(22,18,43,.85);
+    border: 1px solid rgba(217,164,65,.3);
+    padding: 12px 4px 9px;
+    cursor: pointer;
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+    transition: transform .08s, background .12s, border-color .12s;
+  }
+  .key:disabled { opacity: .3; cursor: default; }
+  .key:not(:disabled):active { transform: scale(.95); background: rgba(217,164,65,.2); }
+  .key .glyph { font-size: 28px; line-height: 1; }
+  .key .lbl { font-size: 12px; letter-spacing: .12em; }
+  .key .sub { font-size: 8px; letter-spacing: .1em; color: var(--muted); font-family: 'DM Mono', monospace; }
+  .key.picked { border-color: var(--gold); background: rgba(217,164,65,.24); }
+
+  .key.atk { border-color: rgba(224,87,143,.5); }
+  .key.atk .glyph { filter: drop-shadow(0 0 8px rgba(224,87,143,.8)); }
+  .key.def { border-color: rgba(79,211,232,.5); }
+  .key.def .glyph { filter: drop-shadow(0 0 8px rgba(79,211,232,.8)); }
+
+  /* ============ リザルト ============ */
+  #screen-result {
+    justify-content: center; align-items: center; text-align: center;
+    padding: 30px 22px; gap: 20px;
+  }
+  .result-title { font-size: 30px; font-weight: 800; letter-spacing: .16em; }
+  .result-title.clear { color: var(--gold); text-shadow: 0 0 26px rgba(217,164,65,.7); }
+  .result-title.over { color: var(--pink); text-shadow: 0 0 26px rgba(224,87,143,.6); }
+  .stats {
+    width: 100%; max-width: 320px;
+    border: 1px solid rgba(217,164,65,.28);
+    background: rgba(22,18,43,.7);
+    padding: 4px 16px;
+  }
+  .stat-row {
+    display: flex; justify-content: space-between; align-items: baseline;
+    padding: 9px 0; border-bottom: 1px dashed rgba(255,255,255,.1);
+    font-size: 12px; letter-spacing: .1em;
+  }
+  .stat-row:last-child { border-bottom: none; }
+  .stat-row b { font-family: 'DM Mono', monospace; font-size: 16px; color: var(--gold); font-weight: 500; }
+  .rank { font-size: 13px; letter-spacing: .2em; color: var(--cyan); }
+
+  /* ============ エフェクト層 ============ */
+  #fx { position: fixed; inset: 0; pointer-events: none; z-index: 50; overflow: hidden; }
+  .flash { position: absolute; inset: 0; opacity: 0; }
+  .flash.on { animation: flashOut .3s ease-out; }
+  @keyframes flashOut { from { opacity: .55; } to { opacity: 0; } }
+
+  .float-num {
+    position: absolute;
+    font-family: 'DM Mono', monospace;
+    font-weight: 500;
+    font-size: 30px;
+    text-shadow: 0 2px 12px rgba(0,0,0,.9);
+    animation: floatUp 1s ease-out forwards;
+  }
+  @keyframes floatUp {
+    0% { transform: translate(-50%, 0) scale(.5); opacity: 0; }
+    18% { transform: translate(-50%, -14px) scale(1.25); opacity: 1; }
+    100% { transform: translate(-50%, -68px) scale(.95); opacity: 0; }
+  }
+
+  .spark {
+    position: absolute;
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    animation: sparkFly .62s ease-out forwards;
+  }
+  @keyframes sparkFly {
+    from { transform: translate(0,0) scale(1.3); opacity: 1; }
+    to { transform: translate(var(--dx), var(--dy)) scale(0); opacity: 0; }
+  }
+
+  .ring {
+    position: absolute;
+    border-radius: 50%;
+    border: 2px solid currentColor;
+    transform: translate(-50%,-50%);
+    animation: ringOut .5s ease-out forwards;
+  }
+  @keyframes ringOut {
+    from { width: 10px; height: 10px; opacity: .9; }
+    to { width: 260px; height: 260px; opacity: 0; }
+  }
+
+  .shake { animation: shake .34s cubic-bezier(.36,.07,.19,.97); }
+  @keyframes shake {
+    10%, 90% { transform: translateX(-3px); }
+    20%, 80% { transform: translateX(6px); }
+    30%, 50%, 70% { transform: translateX(-9px); }
+    40%, 60% { transform: translateX(9px); }
+  }
+
+  .banner {
+    position: absolute; left: 50%; top: 42%;
+    transform: translate(-50%,-50%);
+    font-size: 34px; font-weight: 800; letter-spacing: .16em;
+    white-space: nowrap;
+    animation: bannerIn .8s ease-out forwards;
+    text-shadow: 0 0 24px currentColor, 0 3px 14px rgba(0,0,0,.9);
+  }
+  @keyframes bannerIn {
+    0% { transform: translate(-50%,-50%) scale(.4); opacity: 0; }
+    22% { transform: translate(-50%,-50%) scale(1.12); opacity: 1; }
+    72% { transform: translate(-50%,-50%) scale(1); opacity: 1; }
+    100% { transform: translate(-50%,-50%) scale(1.04); opacity: 0; }
+  }
+
+  @media (max-height: 680px) {
+    .hand { width: 68px; height: 68px; font-size: 34px; }
+    .caller { font-size: 21px; min-height: 32px; }
+    .title-main { font-size: 28px; }
+    .key .glyph { font-size: 23px; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ================= タイトル ================= -->
+  <section id="screen-title" class="screen active">
+    <div class="title-seal"><span>🪄</span></div>
+    <div>
+      <h1>叩いて被ってじゃんけんぽん</h1>
+      <div class="title-main">魔導<em>じゃんけん</em></div>
+    </div>
+
+    <div class="rules">
+      <div>① <b>じゃんけん</b>で手を選ぶ（属性つき）</div>
+      <div>② 勝ったら <span class="k">🪄 杖でうつ</span></div>
+      <div>③ 負けたら <span class="k">🛡 結界でまもる</span></div>
+      <div>④ <b>相手より速く</b>押した方の勝ち</div>
+      <div>⑤ <span class="f">反転の魔法</span>が出たら<b>役割が逆</b>！</div>
+      <div>⑥ 命中で<b>魔力</b>が貯まり、3つで<b>大魔法</b></div>
+    </div>
+
+    <button class="btn" id="btnStart">は じ め る</button>
+    <div class="hint">
+      キーボード：<b>1 2 3</b>＝グー/チョキ/パー<br>
+      <b>Z</b> または ←＝杖　／　<b>X</b> または →＝結界
+    </div>
+  </section>
+
+  <!-- ================= ゲーム ================= -->
+  <section id="screen-game" class="screen">
+    <div class="topbar">
+      <span>第 <span class="stage-no" id="stageNo">1</span> 戦</span>
+      <span id="comboLabel"></span>
+      <button class="icon-btn" id="btnSound">♪ ON</button>
+    </div>
+
+    <div class="enemy">
+      <div class="enemy-face" id="enemyFace">🧙</div>
+      <div class="enemy-meta">
+        <div class="enemy-title" id="enemyTitle">見習い</div>
+        <div class="enemy-name" id="enemyName">ポポ</div>
+        <div class="bar foe"><i id="foeBar"></i></div>
+      </div>
+      <div class="bar-num"><span id="foeHp">80</span></div>
+    </div>
+
+    <div class="stage" id="stageArea">
+      <div class="caller" id="caller"></div>
+      <div class="hands">
+        <div class="hand" id="handFoe">？<small>あいて</small></div>
+        <div class="vs">VS</div>
+        <div class="hand" id="handMe">？<small>じぶん</small></div>
+      </div>
+      <div class="verdict" id="verdict"></div>
+      <div class="flip-seal" id="flipSeal"><span>反転</span></div>
+    </div>
+
+    <div class="timer"><i id="timerBar" style="transform:scaleX(0)"></i></div>
+
+    <div class="me-hud">
+      <span class="who">じぶん</span>
+      <div class="bar me"><i id="meBar"></i></div>
+      <span class="bar-num" id="meHp">100</span>
+      <span class="charge" id="chargeBox">
+        <span class="orb"></span><span class="orb"></span><span class="orb"></span>
+      </span>
+    </div>
+
+    <div class="pad janken" id="padJanken">
+      <button class="key" data-hand="rock"><span class="glyph">✊</span><span class="lbl">グー</span><span class="sub">🔥 炎 · 1</span></button>
+      <button class="key" data-hand="scissors"><span class="glyph">✌️</span><span class="lbl">チョキ</span><span class="sub">⚡ 雷 · 2</span></button>
+      <button class="key" data-hand="paper"><span class="glyph">✋</span><span class="lbl">パー</span><span class="sub">💧 水 · 3</span></button>
+    </div>
+
+    <div class="pad action" id="padAction" hidden>
+      <button class="key atk" data-act="attack"><span class="glyph">🪄</span><span class="lbl">うつ</span><span class="sub">Z / ←</span></button>
+      <button class="key def" data-act="shield"><span class="glyph">🛡</span><span class="lbl">まもる</span><span class="sub">X / →</span></button>
+    </div>
+  </section>
+
+  <!-- ================= リザルト ================= -->
+  <section id="screen-result" class="screen">
+    <div class="result-title" id="resultTitle">魔王 撃破</div>
+    <div class="rank" id="resultRank"></div>
+    <div class="stats">
+      <div class="stat-row"><span>とうたつ</span><b id="stStage">1</b></div>
+      <div class="stat-row"><span>スコア</span><b id="stScore">0</b></div>
+      <div class="stat-row"><span>さいだいコンボ</span><b id="stCombo">0</b></div>
+      <div class="stat-row"><span>へいきん反応</span><b id="stReact">-</b></div>
+      <div class="stat-row"><span>クリティカル</span><b id="stCrit">0</b></div>
+    </div>
+    <button class="btn" id="btnRetry">も う 一 度</button>
+    <button class="btn ghost" id="btnTitle">タイトルへ</button>
+  </section>
+
+</div>
+
+<div id="fx"><div class="flash" id="flash"></div></div>
+
+<script>
+(() => {
+  'use strict';
+
+  /* ============================================================
+   *  データ定義
+   * ========================================================== */
+  const HANDS = {
+    rock:     { glyph: '✊',  name: 'グー',   element: '炎', icon: '🔥', color: '#e0483c', beats: 'scissors' },
+    scissors: { glyph: '✌️', name: 'チョキ', element: '雷', icon: '⚡', color: '#e8c94f', beats: 'paper'    },
+    paper:    { glyph: '✋',  name: 'パー',   element: '水', icon: '💧', color: '#4fd3e8', beats: 'rock'     },
+  };
+  const HAND_KEYS = Object.keys(HANDS);
+
+  const STAGES = [
+    { title: '見習い',   name: 'ポポ',         face: '🧙', hp: 80,  mean: 800, sd: 130, flip: 0,    read: 0    },
+    { title: '氷結の魔女', name: 'グラキエ',     face: '❄️', hp: 110, mean: 675, sd: 115, flip: 0.16, read: 0.15 },
+    { title: '紅蓮の騎士', name: 'イグニス',     face: '🔥', hp: 145, mean: 555, sd: 95,  flip: 0.26, read: 0.28 },
+    { title: '魔王',     name: 'ヴォルテクス',  face: '👹', hp: 185, mean: 440, sd: 80,  flip: 0.36, read: 0.4  },
+  ];
+
+  const PICK_MS   = 2400;   // じゃんけんの入力猶予
+  const ACTION_MS = 1500;   // 攻防の入力猶予
+  const MAX_CHARGE = 3;
+  const PLAYER_MAX_HP = 100;
+  const HEAL_ON_CLEAR = 35;
+
+  /* ============================================================
+   *  DOM
+   * ========================================================== */
+  const $ = (id) => document.getElementById(id);
+  const el = {
+    screens: { title: $('screen-title'), game: $('screen-game'), result: $('screen-result') },
+    stageNo: $('stageNo'), comboLabel: $('comboLabel'), btnSound: $('btnSound'),
+    enemyFace: $('enemyFace'), enemyName: $('enemyName'), enemyTitle: $('enemyTitle'),
+    foeBar: $('foeBar'), foeHp: $('foeHp'),
+    stageArea: $('stageArea'), caller: $('caller'), verdict: $('verdict'),
+    handFoe: $('handFoe'), handMe: $('handMe'), flipSeal: $('flipSeal'),
+    timerBar: $('timerBar'),
+    meBar: $('meBar'), meHp: $('meHp'), chargeBox: $('chargeBox'),
+    padJanken: $('padJanken'), padAction: $('padAction'),
+    fx: $('fx'), flash: $('flash'),
+    resultTitle: $('resultTitle'), resultRank: $('resultRank'),
+    stStage: $('stStage'), stScore: $('stScore'), stCombo: $('stCombo'),
+    stReact: $('stReact'), stCrit: $('stCrit'),
+  };
+
+  /* ============================================================
+   *  サウンド（WebAudio・依存なし）
+   * ========================================================== */
+  const sound = {
+    on: true, ctx: null,
+    init() {
+      if (!this.ctx) {
+        const AC = window.AudioContext || window.webkitAudioContext;
+        if (AC) this.ctx = new AC();
+      }
+      if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
+    },
+    tone(freq, dur, type = 'sine', vol = 0.06, slideTo = null) {
+      if (!this.on || !this.ctx) return;
+      const t = this.ctx.currentTime;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, t);
+      if (slideTo) osc.frequency.exponentialRampToValueAtTime(slideTo, t + dur);
+      gain.gain.setValueAtTime(vol, t);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      osc.connect(gain).connect(this.ctx.destination);
+      osc.start(t); osc.stop(t + dur + 0.02);
+    },
+    noise(dur = 0.18, vol = 0.09) {
+      if (!this.on || !this.ctx) return;
+      const rate = this.ctx.sampleRate;
+      const buf = this.ctx.createBuffer(1, rate * dur, rate);
+      const data = buf.getChannelData(0);
+      for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / data.length);
+      const src = this.ctx.createBufferSource();
+      const gain = this.ctx.createGain();
+      src.buffer = buf;
+      gain.gain.setValueAtTime(vol, this.ctx.currentTime);
+      src.connect(gain).connect(this.ctx.destination);
+      src.start();
+    },
+    call()    { this.tone(660, 0.09, 'triangle', 0.05); },
+    go()      { this.tone(880, 0.14, 'triangle', 0.07, 1320); },
+    hit()     { this.noise(0.2, 0.11); this.tone(160, 0.22, 'sawtooth', 0.08, 60); },
+    crit()    { this.noise(0.26, 0.13); this.tone(300, 0.3, 'square', 0.07, 70); this.tone(1200, 0.16, 'triangle', 0.05, 400); },
+    guard()   { this.tone(520, 0.2, 'sine', 0.07, 900); this.tone(780, 0.16, 'sine', 0.04); },
+    damaged() { this.noise(0.24, 0.1); this.tone(120, 0.3, 'square', 0.07, 48); },
+    whiff()   { this.tone(300, 0.22, 'sine', 0.05, 110); },
+    flip()    { this.tone(180, 0.4, 'sawtooth', 0.05, 720); this.tone(900, 0.3, 'triangle', 0.04, 300); },
+    charge()  { this.tone(700, 0.1, 'triangle', 0.05, 1400); },
+    clear()   { [523, 659, 784, 1046].forEach((f, i) => setTimeout(() => this.tone(f, 0.3, 'triangle', 0.06), i * 110)); },
+    over()    { [440, 392, 330, 247].forEach((f, i) => setTimeout(() => this.tone(f, 0.45, 'sine', 0.06), i * 190)); },
+  };
+
+  /* ============================================================
+   *  ゲーム状態
+   * ========================================================== */
+  let G = null;
+  const timers = new Set();
+
+  function later(fn, ms) {
+    const id = setTimeout(() => { timers.delete(id); fn(); }, ms);
+    timers.add(id);
+    return id;
+  }
+  function clearTimers() {
+    timers.forEach(clearTimeout);
+    timers.clear();
+  }
+
+  function newGame() {
+    clearTimers();
+    G = {
+      phase: 'idle',
+      stageIndex: 0,
+      foeHp: STAGES[0].hp,
+      meHp: PLAYER_MAX_HP,
+      charge: 0,
+      combo: 0,
+      maxCombo: 0,
+      score: 0,
+      crits: 0,
+      reactTimes: [],
+      handHistory: [],
+      myHand: null,
+      foeHand: null,
+      flipped: false,
+      flipSeen: false,
+      playerIsAttacker: false,
+      windowStart: 0,
+      foeReact: 0,
+      resolved: false,
+      drawStreak: 0,
+    };
+  }
+
+  const stage = () => STAGES[G.stageIndex];
+
+  /* ============================================================
+   *  画面ユーティリティ
+   * ========================================================== */
+  function show(name) {
+    Object.entries(el.screens).forEach(([k, node]) => node.classList.toggle('active', k === name));
+  }
+
+  function renderHud() {
+    const st = stage();
+    el.stageNo.textContent = G.stageIndex + 1;
+    el.enemyFace.textContent = st.face;
+    el.enemyName.textContent = st.name;
+    el.enemyTitle.textContent = st.title;
+
+    const foePct = Math.max(0, G.foeHp / st.hp);
+    const mePct = Math.max(0, G.meHp / PLAYER_MAX_HP);
+    el.foeBar.style.width = (foePct * 100) + '%';
+    el.meBar.style.width = (mePct * 100) + '%';
+    el.foeBar.parentElement.classList.toggle('low', foePct <= 0.25);
+    el.meBar.parentElement.classList.toggle('low', mePct <= 0.25);
+    el.foeHp.textContent = Math.max(0, Math.ceil(G.foeHp));
+    el.meHp.textContent = Math.max(0, Math.ceil(G.meHp));
+
+    [...el.chargeBox.querySelectorAll('.orb')].forEach((o, i) => o.classList.toggle('on', i < G.charge));
+    el.chargeBox.classList.toggle('full', G.charge >= MAX_CHARGE);
+
+    el.comboLabel.textContent = G.combo >= 2 ? `${G.combo} コンボ` : '';
+  }
+
+  function setCaller(text) {
+    el.caller.textContent = text;
+    el.caller.classList.remove('pop');
+    void el.caller.offsetWidth;
+    el.caller.classList.add('pop');
+  }
+
+  function setHands(mine, foe) {
+    const paint = (node, key, label) => {
+      if (!key) {
+        node.innerHTML = `？<small>${label}</small>`;
+        node.style.color = '';
+        node.classList.remove('reveal', 'win-glow');
+        return;
+      }
+      const h = HANDS[key];
+      node.innerHTML = `${h.glyph}<small>${h.icon} ${h.element}</small>`;
+      node.style.color = h.color;
+      node.classList.remove('reveal');
+      void node.offsetWidth;
+      node.classList.add('reveal');
+    };
+    paint(el.handMe, mine, 'じぶん');
+    paint(el.handFoe, foe, 'あいて');
+  }
+
+  function runTimerBar(ms) {
+    const bar = el.timerBar;
+    bar.style.transition = 'none';
+    bar.style.transform = 'scaleX(1)';
+    void bar.offsetWidth;
+    bar.style.transition = `transform ${ms}ms linear`;
+    bar.style.transform = 'scaleX(0)';
+  }
+  function stopTimerBar() {
+    el.timerBar.style.transition = 'none';
+    el.timerBar.style.transform = 'scaleX(0)';
+  }
+
+  // which: 'janken' | 'action' | 'keep'（表示はそのまま）
+  // live=false なら見えたまま無効化する。パッドを消すとボタン位置が跳ねるため、
+  // 入力できない間も同じ場所に置いたままにする。
+  function setPad(which, live = true) {
+    if (which !== 'keep') {
+      el.padJanken.hidden = which !== 'janken';
+      el.padAction.hidden = which !== 'action';
+    }
+    const jankenLive = live && which === 'janken';
+    el.padJanken.querySelectorAll('.key').forEach(k => {
+      k.disabled = !jankenLive;
+      if (jankenLive) k.classList.remove('picked');
+    });
+    el.padAction.querySelectorAll('.key').forEach(k => { k.disabled = !(live && which === 'action'); });
+  }
+
+  /* ============================================================
+   *  エフェクト
+   * ========================================================== */
+  function flash(color, alpha = 0.5) {
+    el.flash.style.background = color;
+    el.flash.style.opacity = alpha;
+    el.flash.classList.remove('on');
+    void el.flash.offsetWidth;
+    el.flash.classList.add('on');
+  }
+
+  function shake() {
+    const app = document.querySelector('.app');
+    app.classList.remove('shake');
+    void app.offsetWidth;
+    app.classList.add('shake');
+  }
+
+  function centerOf(node) {
+    const r = node.getBoundingClientRect();
+    return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+  }
+
+  function floatNum(node, text, color) {
+    const p = centerOf(node);
+    const d = document.createElement('div');
+    d.className = 'float-num';
+    d.textContent = text;
+    d.style.color = color;
+    d.style.left = p.x + 'px';
+    d.style.top = p.y + 'px';
+    el.fx.appendChild(d);
+    setTimeout(() => d.remove(), 1000);
+  }
+
+  function burst(node, color, count = 16) {
+    const p = centerOf(node);
+    for (let i = 0; i < count; i++) {
+      const s = document.createElement('div');
+      const ang = (Math.PI * 2 * i) / count + Math.random() * 0.5;
+      const dist = 40 + Math.random() * 80;
+      s.className = 'spark';
+      s.style.left = p.x + 'px';
+      s.style.top = p.y + 'px';
+      s.style.background = color;
+      s.style.boxShadow = `0 0 10px ${color}`;
+      s.style.setProperty('--dx', Math.cos(ang) * dist + 'px');
+      s.style.setProperty('--dy', Math.sin(ang) * dist + 'px');
+      el.fx.appendChild(s);
+      setTimeout(() => s.remove(), 640);
+    }
+  }
+
+  function ring(node, color) {
+    const p = centerOf(node);
+    const r = document.createElement('div');
+    r.className = 'ring';
+    r.style.color = color;
+    r.style.left = p.x + 'px';
+    r.style.top = p.y + 'px';
+    el.fx.appendChild(r);
+    setTimeout(() => r.remove(), 520);
+  }
+
+  function banner(text, color) {
+    const b = document.createElement('div');
+    b.className = 'banner';
+    b.textContent = text;
+    b.style.color = color;
+    el.fx.appendChild(b);
+    setTimeout(() => b.remove(), 820);
+  }
+
+  /* ============================================================
+   *  ラウンド進行
+   * ========================================================== */
+  function startStage() {
+    const st = stage();
+    G.foeHp = st.hp;
+    G.myHand = G.foeHand = null;
+    renderHud();
+    setHands(null, null);
+    el.verdict.textContent = '';
+    el.verdict.className = 'verdict';
+    setPad('janken', false);
+    stopTimerBar();
+
+    setCaller(`第 ${G.stageIndex + 1} 戦`);
+    later(() => {
+      setCaller(`${st.title} ${st.name}`);
+      sound.call();
+      later(startRound, 1000);
+    }, 800);
+  }
+
+  function startRound(isDraw = false) {
+    if (G.foeHp <= 0 || G.meHp <= 0) return;
+    G.phase = 'call';
+    G.myHand = G.foeHand = null;
+    G.resolved = false;
+    G.flipped = false;
+    setHands(null, null);
+    el.verdict.textContent = '';
+    el.verdict.className = 'verdict';
+    setPad('janken', false);
+    stopTimerBar();
+
+    const lines = isDraw ? ['あいこで'] : ['さいしょは', 'グー'];
+    let i = 0;
+    const step = () => {
+      if (i < lines.length) {
+        setCaller(lines[i]);
+        sound.call();
+        i++;
+        later(step, 520);
+      } else {
+        openPick(isDraw);
+      }
+    };
+    step();
+  }
+
+  function openPick(isDraw) {
+    G.phase = 'pick';
+    setCaller(isDraw ? 'しょ！' : 'じゃんけん…');
+    sound.go();
+    setPad('janken');
+    G.windowStart = performance.now();
+    runTimerBar(PICK_MS);
+    later(() => {
+      if (G.phase === 'pick') choose(null);   // 時間切れ
+    }, PICK_MS);
+  }
+
+  function pickFoeHand() {
+    const st = stage();
+    // 高難度ほど、プレイヤーの手癖を読んで返してくる
+    if (G.handHistory.length >= 3 && Math.random() < st.read) {
+      const tally = {};
+      G.handHistory.slice(-6).forEach(h => { tally[h] = (tally[h] || 0) + 1; });
+      const fav = Object.keys(tally).sort((a, b) => tally[b] - tally[a])[0];
+      // fav に勝つ手を返す
+      return HAND_KEYS.find(k => HANDS[k].beats === fav);
+    }
+    return HAND_KEYS[Math.floor(Math.random() * 3)];
+  }
+
+  function choose(hand) {
+    if (G.phase !== 'pick') return;
+    clearTimers();
+    stopTimerBar();
+    G.phase = 'reveal';
+    setPad('keep', false);
+
+    if (hand) {
+      G.handHistory.push(hand);
+      const btn = el.padJanken.querySelector(`[data-hand="${hand}"]`);
+      if (btn) btn.classList.add('picked');
+    }
+
+    G.myHand = hand;
+    G.foeHand = pickFoeHand();
+    setCaller('ぽん！');
+    setHands(hand, G.foeHand);
+    sound.go();
+
+    later(judgeJanken, 460);
+  }
+
+  function judgeJanken() {
+    // 手を出せなかった＝じゃんけん負け扱い
+    let result;
+    if (!G.myHand) result = 'lose';
+    else if (G.myHand === G.foeHand) result = 'draw';
+    else if (HANDS[G.myHand].beats === G.foeHand) result = 'win';
+    else result = 'lose';
+
+    if (result === 'draw') {
+      G.drawStreak++;
+      el.verdict.textContent = G.drawStreak >= 2 ? `あ い こ ×${G.drawStreak}` : 'あ い こ';
+      el.verdict.className = 'verdict draw';
+      later(() => startRound(true), 620);
+      return;
+    }
+
+    G.drawStreak = 0;
+    const st = stage();
+    G.flipped = Math.random() < st.flip;
+
+    if (result === 'win') {
+      el.verdict.textContent = 'じゃんけん勝ち';
+      el.verdict.className = 'verdict win';
+      el.handMe.classList.add('win-glow');
+    } else {
+      el.verdict.textContent = G.myHand ? 'じゃんけん負け' : '手を出せなかった…';
+      el.verdict.className = 'verdict lose';
+      el.handFoe.classList.add('win-glow');
+    }
+
+    // 反転の魔法：勝敗と役割が入れ替わる
+    G.playerIsAttacker = (result === 'win') !== G.flipped;
+
+    if (G.flipped) {
+      sound.flip();
+      el.flipSeal.classList.remove('on');
+      void el.flipSeal.offsetWidth;
+      el.flipSeal.classList.add('on');
+      flash('#7b5cd6', 0.4);
+      if (!G.flipSeen) {
+        G.flipSeen = true;
+        el.verdict.textContent = '反転！役割が入れ替わる';
+        el.verdict.className = 'verdict';
+        el.verdict.style.color = '#7b5cd6';
+        later(() => { el.verdict.style.color = ''; }, 900);
+      }
+      later(openAction, 720);
+    } else {
+      later(openAction, 420);
+    }
+  }
+
+  function gaussian(mean, sd) {
+    let u = 0, v = 0;
+    while (u === 0) u = Math.random();
+    while (v === 0) v = Math.random();
+    return mean + sd * Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+  }
+
+  function openAction() {
+    G.phase = 'action';
+    const st = stage();
+    G.foeReact = Math.max(210, Math.min(ACTION_MS - 60, gaussian(st.mean, st.sd)));
+
+    setCaller(G.playerIsAttacker ? 'う て ！' : 'ま も れ ！');
+    sound.go();
+    setPad('action');   // どちらを押すかのヒントは出さない。自分で判断する
+
+    G.windowStart = performance.now();
+    runTimerBar(ACTION_MS);
+    later(() => {
+      if (G.phase === 'action') act(null);   // 時間切れ
+    }, ACTION_MS);
+  }
+
+  function act(action) {
+    if (G.phase !== 'action' || G.resolved) return;
+    G.resolved = true;
+    G.phase = 'resolve';
+    clearTimers();
+    stopTimerBar();
+    setPad('keep', false);
+
+    const t = action ? performance.now() - G.windowStart : ACTION_MS;
+    const correct = action === (G.playerIsAttacker ? 'attack' : 'shield');
+    if (action && correct) G.reactTimes.push(t);
+
+    if (G.playerIsAttacker) resolveAttack(action, correct, t);
+    else resolveDefense(action, correct, t);
+
+    renderHud();
+    later(afterResolve, 900);
+  }
+
+  /* --- プレイヤーが攻撃側 ------------------------------------ */
+  function resolveAttack(action, correct, t) {
+    const elem = G.myHand ? HANDS[G.myHand] : HANDS.rock;
+
+    if (!action) {
+      banner('よそ見…', '#8b86a3');
+      setCaller('魔力が霧散した');
+      sound.whiff();
+      breakCombo();
+      return;
+    }
+    if (!correct) {          // 攻撃すべき場面で結界を張った＝お手つき
+      banner('お手つき！', '#8b86a3');
+      setCaller('無駄な結界…');
+      sound.whiff();
+      breakCombo();
+      damageMe(6, false);
+      return;
+    }
+    if (t >= G.foeReact) {   // 相手の結界の方が速い
+      banner('ふせがれた', '#4fd3e8');
+      setCaller('結界に阻まれた！');
+      ring(el.enemyFace, '#4fd3e8');
+      sound.guard();
+      breakCombo();
+      return;
+    }
+
+    // ヒット
+    const speedRatio = 1 - t / G.foeReact;                  // 0〜1
+    const isCrit = t < 300 || speedRatio > 0.68;
+    const isBig = G.charge >= MAX_CHARGE;
+
+    let dmg = 13 + Math.round(speedRatio * 10);
+    if (isCrit) dmg = Math.round(dmg * 1.7);
+    if (isBig) dmg = Math.round(dmg * 2.4);
+
+    damageFoe(dmg, { crit: isCrit, big: isBig, elem });
+
+    G.combo++;
+    G.maxCombo = Math.max(G.maxCombo, G.combo);
+    G.score += dmg * (1 + G.combo * 0.1);
+    if (isCrit) G.crits++;
+
+    if (isBig) {
+      G.charge = 0;
+      banner('大 魔 法 ！', '#d9a441');
+      setCaller(`${elem.icon} ${elem.element}の大魔法！`);
+    } else {
+      G.charge = Math.min(MAX_CHARGE, G.charge + 1);
+      if (G.charge === MAX_CHARGE) sound.charge();
+      banner(isCrit ? 'クリティカル！' : 'ヒット！', isCrit ? '#d9a441' : elem.color);
+      setCaller(`${elem.icon} ${elem.element}の魔法が命中`);
+    }
+  }
+
+  /* --- プレイヤーが防御側 ------------------------------------ */
+  function resolveDefense(action, correct, t) {
+    if (!action) {
+      banner('直 撃', '#e0483c');
+      setCaller('魔法をまともに受けた…');
+      breakCombo();
+      damageMe(13, true);
+      return;
+    }
+    if (!correct) {          // 守るべき場面で杖を振った＝お手つき
+      banner('お手つき！', '#e0483c');
+      setCaller('隙だらけ！');
+      breakCombo();
+      damageMe(17, true);
+      return;
+    }
+    if (t >= G.foeReact) {   // 結界が間に合わない
+      banner('間に合わない！', '#e0483c');
+      setCaller('結界が遅れた…');
+      breakCombo();
+      damageMe(12, true);
+      return;
+    }
+
+    // ガード成功
+    ring(el.handMe, '#4fd3e8');
+    burst(el.handMe, '#4fd3e8', 12);
+    sound.guard();
+    G.combo++;
+    G.maxCombo = Math.max(G.maxCombo, G.combo);
+    G.score += 12;
+
+    const margin = 1 - t / G.foeReact;
+    if (margin > 0.5) {      // 余裕をもって張れたらカウンター
+      banner('カウンター結界！', '#4fd3e8');
+      setCaller('弾き返した！');
+      G.charge = Math.min(MAX_CHARGE, G.charge + 1);
+      later(() => damageFoe(9, { crit: false, big: false, elem: HANDS.paper, quiet: true }), 180);
+      G.score += 20;
+    } else {
+      banner('ガード！', '#4fd3e8');
+      setCaller('結界で受けきった');
+    }
+  }
+
+  function breakCombo() { G.combo = 0; }
+
+  function damageFoe(dmg, opt) {
+    G.foeHp -= dmg;
+    el.enemyFace.classList.remove('hurt');
+    void el.enemyFace.offsetWidth;
+    el.enemyFace.classList.add('hurt');
+    floatNum(el.enemyFace, '-' + dmg, opt.crit || opt.big ? '#d9a441' : '#fff');
+    burst(el.enemyFace, opt.elem ? opt.elem.color : '#fff', opt.big ? 28 : 18);
+    if (!opt.quiet) {
+      shake();
+      flash(opt.elem ? opt.elem.color : '#fff', opt.big ? 0.5 : 0.28);
+      (opt.crit || opt.big) ? sound.crit() : sound.hit();
+    }
+    renderHud();
+  }
+
+  function damageMe(dmg, real) {
+    G.meHp -= dmg;
+    floatNum(el.handMe, '-' + dmg, '#e0483c');
+    if (real) {
+      shake();
+      flash('#e0483c', 0.42);
+      burst(el.handMe, '#e0483c', 16);
+      sound.damaged();
+    }
+    G.charge = Math.max(0, G.charge - 1);
+    renderHud();
+  }
+
+  /* ============================================================
+   *  ラウンド後の分岐
+   * ========================================================== */
+  function afterResolve() {
+    renderHud();
+    if (G.meHp <= 0) { gameOver(false); return; }
+    if (G.foeHp <= 0) { stageClear(); return; }
+    startRound();
+  }
+
+  function stageClear() {
+    G.phase = 'clear';
+    clearTimers();
+    setPad('keep', false);
+    stopTimerBar();
+    G.score += 300 + G.stageIndex * 200;
+
+    banner('撃 破 ！', '#d9a441');
+    burst(el.enemyFace, '#d9a441', 30);
+    flash('#d9a441', 0.5);
+    sound.clear();
+    el.enemyFace.textContent = '💥';
+    setCaller(`${stage().name} を たおした！`);
+
+    if (G.stageIndex >= STAGES.length - 1) {
+      later(() => gameOver(true), 1600);
+      return;
+    }
+    later(() => {
+      G.stageIndex++;
+      G.meHp = Math.min(PLAYER_MAX_HP, G.meHp + HEAL_ON_CLEAR);
+      G.charge = Math.min(MAX_CHARGE, G.charge + 1);
+      floatNum(el.handMe, '+' + HEAL_ON_CLEAR, '#4fc98a');
+      setCaller('魔力が回復した');
+      renderHud();
+      later(startStage, 900);
+    }, 1500);
+  }
+
+  function gameOver(cleared) {
+    G.phase = 'over';
+    clearTimers();
+    stopTimerBar();
+    setPad('keep', false);
+    if (!cleared) {
+      sound.over();
+      flash('#e0483c', 0.55);
+      setCaller('魔力が尽きた…');
+    }
+
+    const avg = G.reactTimes.length
+      ? Math.round(G.reactTimes.reduce((a, b) => a + b, 0) / G.reactTimes.length)
+      : null;
+    const score = Math.round(G.score);
+
+    el.resultTitle.textContent = cleared ? '魔 王 撃 破' : 'ゲ ー ム オ ー バ ー';
+    el.resultTitle.className = 'result-title ' + (cleared ? 'clear' : 'over');
+    el.stStage.textContent = `第 ${G.stageIndex + 1} 戦`;
+    el.stScore.textContent = score.toLocaleString();
+    el.stCombo.textContent = G.maxCombo;
+    el.stReact.textContent = avg ? avg + ' ms' : '-';
+    el.stCrit.textContent = G.crits;
+    el.resultRank.textContent = rankOf(cleared, score, avg);
+
+    later(() => show('result'), cleared ? 900 : 1200);
+  }
+
+  function rankOf(cleared, score, avg) {
+    if (cleared && avg && avg < 320) return '称号：閃光の大魔導士';
+    if (cleared) return '称号：魔王を討つ者';
+    if (score > 2500) return '称号：熟練の魔導士';
+    if (score > 1200) return '称号：見習いを超えし者';
+    return '称号：杖を握ったばかりの者';
+  }
+
+  /* ============================================================
+   *  入力
+   * ========================================================== */
+  el.padJanken.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-hand]');
+    if (btn && !btn.disabled) choose(btn.dataset.hand);
+  });
+  el.padAction.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-act]');
+    if (btn && !btn.disabled) act(btn.dataset.act);
+  });
+
+  const KEY_HAND = { '1': 'rock', '2': 'scissors', '3': 'paper' };
+  const KEY_ACT = { 'z': 'attack', 'arrowleft': 'attack', 'x': 'shield', 'arrowright': 'shield' };
+
+  document.addEventListener('keydown', (e) => {
+    if (e.repeat) return;
+    const k = e.key.toLowerCase();
+
+    if (el.screens.title.classList.contains('active')) {
+      if (k === 'enter' || k === ' ') { e.preventDefault(); begin(); }
+      return;
+    }
+    if (el.screens.result.classList.contains('active')) {
+      if (k === 'enter' || k === ' ') { e.preventDefault(); begin(); }
+      return;
+    }
+    if (!G) return;
+
+    if (G.phase === 'pick' && KEY_HAND[k]) { e.preventDefault(); choose(KEY_HAND[k]); }
+    else if (G.phase === 'action' && KEY_ACT[k]) { e.preventDefault(); act(KEY_ACT[k]); }
+  });
+
+  // 攻防フェーズ以外での連打を無効化（誤爆でパッドが反応しないように）
+  document.addEventListener('contextmenu', (e) => {
+    if (el.screens.game.classList.contains('active')) e.preventDefault();
+  });
+
+  /* ============================================================
+   *  起動
+   * ========================================================== */
+  function begin() {
+    sound.init();
+    newGame();
+    show('game');
+    renderHud();
+    el.enemyFace.classList.remove('hurt');
+    startStage();
+  }
+
+  $('btnStart').addEventListener('click', begin);
+  $('btnRetry').addEventListener('click', begin);
+  $('btnTitle').addEventListener('click', () => { clearTimers(); show('title'); });
+  el.btnSound.addEventListener('click', () => {
+    sound.on = !sound.on;
+    el.btnSound.textContent = sound.on ? '♪ ON' : '♪ OFF';
+    if (sound.on) sound.init();
+  });
+
+  newGame();
+  renderHud();
+})();
+</script>
+</body>
+</html>
