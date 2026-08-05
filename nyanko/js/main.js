@@ -11,6 +11,8 @@ const Game = {
   resultShown: false,
   rafId: 0,
 
+  booted: false,
+
   init() {
     Save.load();
     Render.init($('#field'));
@@ -19,6 +21,7 @@ const Game = {
     this.bindPointer();
     this.bindKeys();
     UI.show('scr-title');
+    this.booted = true;
     this.loop(performance.now());
   },
 
@@ -142,4 +145,39 @@ const Game = {
   },
 };
 
-window.addEventListener('load', () => Game.init());
+/* ---------------------------------------------------------------- 起動 */
+/* load イベント待ちにすると、ページ読み込み後に中身が差し込まれる環境
+   （アーティファクトへの埋め込みなど）では load が既に終わっていて
+   初期化が一生走らない。DOM が組み上がっていれば即座に起動する。 */
+function boot() {
+  if (Game.booted) return;
+  try {
+    Game.init();
+  } catch (e) {
+    showFatal(e);
+  }
+}
+
+/* 起動に失敗したとき、画面が静止したままだと原因が分からないので表示する */
+function showFatal(err) {
+  if (document.getElementById('fatal-error')) return;
+  const el = document.createElement('div');
+  el.id = 'fatal-error';
+  el.style.cssText =
+    'position:fixed;left:0;right:0;bottom:0;z-index:9999;background:#b23c2a;color:#fff;' +
+    'padding:12px 14px;font:12px/1.6 ui-monospace,monospace;white-space:pre-wrap;' +
+    'max-height:50%;overflow:auto';
+  el.textContent = '起動に失敗しました。この内容を伝えてください:\n' +
+    ((err && (err.stack || err.message)) || String(err));
+  (document.body || document.documentElement).appendChild(el);
+}
+
+window.addEventListener('error', e => {
+  if (!Game.booted) showFatal(e.error || e.message);
+});
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', boot);
+} else {
+  boot();
+}
