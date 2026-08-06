@@ -441,7 +441,7 @@
   }
 
   .banner {
-    position: absolute; left: 50%; top: 42%;
+    position: absolute; left: 50%; top: 27%;
     transform: translate(-50%,-50%);
     font-size: 34px; font-weight: 800; letter-spacing: .16em;
     white-space: nowrap;
@@ -454,6 +454,141 @@
     72% { transform: translate(-50%,-50%) scale(1); opacity: 1; }
     100% { transform: translate(-50%,-50%) scale(1.04); opacity: 0; }
   }
+
+  /* ---- 詠唱：魔法陣 ---- */
+  .mcircle {
+    position: absolute;
+    transform: translate(-50%,-50%);
+    animation: mcircleIn .66s ease-out forwards;
+  }
+  .mcircle svg { width: 100%; height: 100%; display: block; filter: drop-shadow(0 0 9px currentColor); }
+  @keyframes mcircleIn {
+    0%   { opacity: 0; transform: translate(-50%,-50%) scale(.3)  rotate(-70deg); }
+    28%  { opacity: 1; transform: translate(-50%,-50%) scale(1.1) rotate(0deg); }
+    62%  { opacity: .95; transform: translate(-50%,-50%) scale(1) rotate(24deg); }
+    100% { opacity: 0; transform: translate(-50%,-50%) scale(1.3) rotate(56deg); }
+  }
+  .mcircle.fizzle { animation: mcircleFizzle .55s ease-in forwards; }
+  @keyframes mcircleFizzle {
+    0%   { opacity: 0; transform: translate(-50%,-50%) scale(.4) rotate(-30deg); }
+    35%  { opacity: .7; transform: translate(-50%,-50%) scale(.85) rotate(0deg); }
+    100% { opacity: 0; transform: translate(-50%,-50%) scale(.5) rotate(18deg); filter: blur(3px); }
+  }
+
+  /* ---- 飛翔する魔法弾 ---- */
+  .orbfly {
+    position: absolute;
+    width: 36px; height: 36px; margin: -18px 0 0 -18px;
+    display: grid; place-items: center;
+    border-radius: 50%;
+    animation: orbFly var(--dur) cubic-bezier(.3,.02,.5,1) forwards;
+  }
+  .orbfly::before {
+    content: '';
+    position: absolute; inset: -9px;
+    border-radius: 50%;
+    background: radial-gradient(circle, currentColor 10%, transparent 68%);
+    opacity: .85;
+    filter: blur(4px);
+  }
+  .orbfly.big { width: 54px; height: 54px; margin: -27px 0 0 -27px; }
+  .orbfly > span { position: relative; font-size: 20px; line-height: 1; }
+  .orbfly.big > span { font-size: 30px; }
+  @keyframes orbFly {
+    0%   { transform: translate(0,0) scale(.4); opacity: 0; }
+    16%  { transform: translate(calc(var(--dx) * .16), calc(var(--dy) * .16)) scale(1.15); opacity: 1; }
+    100% { transform: translate(var(--dx), var(--dy)) scale(1); opacity: 1; }
+  }
+  .trail {
+    position: absolute;
+    width: 10px; height: 10px; margin: -5px 0 0 -5px;
+    border-radius: 50%;
+    background: radial-gradient(circle, currentColor, transparent 70%);
+    animation: trailOut .34s ease-out forwards;
+  }
+  @keyframes trailOut {
+    from { opacity: .8; transform: scale(1); }
+    to { opacity: 0; transform: scale(.2); }
+  }
+
+  /* ---- 結界 ---- */
+  .barrier {
+    position: absolute;
+    transform: translate(-50%,-50%);
+    color: var(--cyan);
+  }
+  .barrier svg { width: 100%; height: 100%; display: block; filter: drop-shadow(0 0 10px currentColor); }
+  .barrier.hold { animation: barrierHold .95s ease-out forwards; }
+  @keyframes barrierHold {
+    0%   { opacity: 0; transform: translate(-50%,-50%) scale(.45); }
+    18%  { opacity: 1; transform: translate(-50%,-50%) scale(1.08); }
+    32%  { opacity: .9; transform: translate(-50%,-50%) scale(1); }
+    72%  { opacity: .85; transform: translate(-50%,-50%) scale(1.02); }
+    100% { opacity: 0; transform: translate(-50%,-50%) scale(1.12); }
+  }
+  .barrier.fizzle { animation: barrierFizzle .6s ease-out forwards; }
+  @keyframes barrierFizzle {
+    0%   { opacity: 0; transform: translate(-50%,-50%) scale(.4); }
+    25%  { opacity: .8; transform: translate(-50%,-50%) scale(.92); }
+    100% { opacity: 0; transform: translate(-50%,-50%) scale(.7); filter: blur(4px); }
+  }
+  .barrier.broken { animation: barrierBroken .55s ease-in forwards; }
+  @keyframes barrierBroken {
+    0%   { opacity: 0; transform: translate(-50%,-50%) scale(.5) rotate(0deg); }
+    20%  { opacity: 1; transform: translate(-50%,-50%) scale(1.05); }
+    40%  { opacity: 1; transform: translate(-50%,-50%) scale(1) skewX(9deg); }
+    100% { opacity: 0; transform: translate(-50%,-50%) scale(1.35) skewX(-14deg); filter: blur(3px); }
+  }
+  .barrier.hit svg { animation: barrierHit .3s ease-out; }
+  @keyframes barrierHit {
+    0% { filter: drop-shadow(0 0 10px currentColor) brightness(1); }
+    20% { filter: drop-shadow(0 0 26px #fff) brightness(3); }
+    100% { filter: drop-shadow(0 0 10px currentColor) brightness(1); }
+  }
+
+  /* ---- 属性ごとの着弾 ---- */
+  .bolt {
+    position: absolute;
+    transform: translate(-50%,-100%);
+    animation: boltFlick .42s steps(1) forwards;
+  }
+  .bolt svg { display: block; filter: drop-shadow(0 0 8px #fff8c0); }
+  @keyframes boltFlick {
+    0% { opacity: 1; } 18% { opacity: .25; } 30% { opacity: 1; }
+    58% { opacity: .4; } 70% { opacity: 1; } 100% { opacity: 0; }
+  }
+  .blaze {
+    position: absolute;
+    width: 20px; height: 20px; margin: -10px 0 0 -10px;
+    border-radius: 50%;
+    background: radial-gradient(circle, #fff3c4 5%, #ffb347 35%, rgba(224,72,60,.75) 60%, transparent 74%);
+    animation: blazeUp .72s ease-out forwards;
+  }
+  @keyframes blazeUp {
+    0%   { transform: translate(0,0) scale(.5); opacity: 1; }
+    100% { transform: translate(var(--dx), calc(var(--dy) - 46px)) scale(2.1); opacity: 0; }
+  }
+  .droplet {
+    position: absolute;
+    width: 9px; height: 9px; margin: -4px 0 0 -4px;
+    border-radius: 50% 50% 50% 0;
+    background: linear-gradient(180deg, #bff3fb, #2f8fd6);
+    animation: dropArc .66s ease-out forwards;
+  }
+  @keyframes dropArc {
+    0%   { transform: translate(0,0) rotate(45deg) scale(1); opacity: 1; }
+    100% { transform: translate(var(--dx), var(--dy)) rotate(210deg) scale(.4); opacity: 0; }
+  }
+
+  /* ---- 詠唱時の踏み込み ---- */
+  .hand.cast { animation: castNudge .34s ease-out; }
+  @keyframes castNudge {
+    0% { transform: translateY(0) scale(1); }
+    30% { transform: translateY(6px) scale(.94); }
+    55% { transform: translateY(-8px) scale(1.08); }
+    100% { transform: translateY(0) scale(1); }
+  }
+  .enemy-face.cast { animation: castNudge .34s ease-out; }
 
   @media (max-height: 680px) {
     .hand { width: 68px; height: 68px; font-size: 34px; }
@@ -647,6 +782,14 @@
       src.start();
     },
     call()    { this.tone(660, 0.09, 'triangle', 0.05); },
+    cast(big) {
+      this.tone(big ? 200 : 300, 0.28, 'sawtooth', 0.045, big ? 940 : 780);
+      this.tone(880, 0.2, 'triangle', 0.03, 1600);
+      if (big) this.tone(120, 0.4, 'square', 0.05, 320);
+    },
+    barrier() { this.tone(300, 0.26, 'sine', 0.05, 760); this.tone(1500, 0.12, 'triangle', 0.025); },
+    deflect() { this.tone(1300, 0.16, 'square', 0.05, 460); this.noise(0.1, 0.05); },
+    crack()   { this.noise(0.22, 0.09); this.tone(900, 0.24, 'square', 0.04, 180); },
     go()      { this.tone(880, 0.14, 'triangle', 0.07, 1320); },
     hit()     { this.noise(0.2, 0.11); this.tone(160, 0.22, 'sawtooth', 0.08, 60); },
     crit()    { this.noise(0.26, 0.13); this.tone(300, 0.3, 'square', 0.07, 70); this.tone(1200, 0.16, 'triangle', 0.05, 400); },
@@ -698,6 +841,7 @@
       foeReact: 0,
       resolved: false,
       drawStreak: 0,
+      nextDelay: 900,
     };
   }
 
@@ -817,7 +961,7 @@
     d.textContent = text;
     d.style.color = color;
     d.style.left = p.x + 'px';
-    d.style.top = p.y + 'px';
+    d.style.top = Math.max(p.y, 96) + 'px';   // 上に 68px 浮くので画面外に出さない
     el.fx.appendChild(d);
     setTimeout(() => d.remove(), 1000);
   }
@@ -858,6 +1002,167 @@
     b.style.color = color;
     el.fx.appendChild(b);
     setTimeout(() => b.remove(), 820);
+  }
+
+  /* ============================================================
+   *  魔法の発動演出
+   *  詠唱（魔法陣）→ 魔法弾の飛翔 → 属性ごとの着弾／結界での相殺
+   *  演出そのものは setTimeout で自走させ、ゲーム状態を動かす処理だけ
+   *  later() に載せて中断できるようにしている。
+   * ========================================================== */
+  const CAST_MS = 210;     // 魔法陣が展開しきるまで
+  const TRAVEL_MS = 260;   // 魔法弾が飛ぶ時間
+
+  function reap(node, ms) { setTimeout(() => node.remove(), ms); }
+
+  function place(cls, x, y, size, color) {
+    const d = document.createElement('div');
+    d.className = cls;
+    d.style.left = x + 'px';
+    d.style.top = y + 'px';
+    if (size) { d.style.width = size + 'px'; d.style.height = size + 'px'; }
+    if (color) d.style.color = color;
+    el.fx.appendChild(d);
+    return d;
+  }
+
+  const hexPoints = (r) => {
+    const pts = [];
+    for (let i = 0; i < 6; i++) {
+      const a = (Math.PI / 180) * (60 * i - 90);
+      pts.push(`${(Math.cos(a) * r).toFixed(1)},${(Math.sin(a) * r).toFixed(1)}`);
+    }
+    return pts.join(' ');
+  };
+
+  const CIRCLE_SVG = `
+    <svg viewBox="-50 -50 100 100" xmlns="http://www.w3.org/2000/svg">
+      <g fill="none" stroke="currentColor" stroke-linecap="round">
+        <circle r="47" stroke-width="1.7"/>
+        <circle r="40" stroke-width="0.7" stroke-dasharray="3 4"/>
+        <polygon points="0,-36 31.2,18 -31.2,18" stroke-width="1.3"/>
+        <polygon points="0,36 31.2,-18 -31.2,-18" stroke-width="1.3"/>
+        <circle r="16" stroke-width="1"/>
+        <circle r="9" stroke-width="0.7" stroke-dasharray="2 3"/>
+        <path d="M0,-47 L0,-40 M40.7,23.5 L34.6,20 M-40.7,23.5 L-34.6,20" stroke-width="1.6"/>
+      </g>
+    </svg>`;
+
+  const BARRIER_SVG = `
+    <svg viewBox="-50 -50 100 100" xmlns="http://www.w3.org/2000/svg">
+      <polygon points="${hexPoints(46)}" fill="currentColor" opacity="0.13"/>
+      <g fill="none" stroke="currentColor" stroke-linejoin="round">
+        <polygon points="${hexPoints(46)}" stroke-width="2.2"/>
+        <polygon points="${hexPoints(34)}" stroke-width="0.8" opacity="0.7"/>
+        <polygon points="${hexPoints(21)}" stroke-width="0.6" opacity="0.45"/>
+        <g stroke-width="0.6" opacity="0.5">
+          ${hexPoints(46).split(' ').map(p => `<path d="M0,0 L${p}"/>`).join('')}
+        </g>
+      </g>
+    </svg>`;
+
+  // 詠唱の魔法陣。fizzle=true なら不発として立ち消える。
+  function magicCircle(node, color, opt = {}) {
+    const p = centerOf(node);
+    const size = opt.size || (opt.big ? 172 : Math.max(112, node.offsetWidth * 1.6));
+    const edge = size * 0.42;
+    const x = Math.min(Math.max(p.x, edge), window.innerWidth - edge);
+    const y = Math.min(Math.max(p.y, edge), window.innerHeight - edge);
+    const d = place('mcircle' + (opt.fizzle ? ' fizzle' : ''), x, y, size, color);
+    d.innerHTML = CIRCLE_SVG;
+    reap(d, 700);
+    return d;
+  }
+
+  // 飛翔する魔法弾と、その軌跡。
+  function flyOrb(from, to, elem, opt = {}) {
+    const a = centerOf(from), b = centerOf(to);
+    const d = place('orbfly' + (opt.big ? ' big' : ''), a.x, a.y, null, elem.color);
+    d.style.setProperty('--dx', (b.x - a.x) + 'px');
+    d.style.setProperty('--dy', (b.y - a.y) + 'px');
+    d.style.setProperty('--dur', TRAVEL_MS + 'ms');
+    d.innerHTML = `<span>${elem.icon}</span>`;
+    reap(d, TRAVEL_MS + 60);
+
+    [0.3, 0.48, 0.66, 0.84].forEach(f => setTimeout(() => {
+      const t = place('trail', a.x + (b.x - a.x) * f, a.y + (b.y - a.y) * f, null, elem.color);
+      reap(t, 360);
+    }, TRAVEL_MS * f));
+  }
+
+  // mode: 'hold'（展開して受けきる）/ 'fizzle'（不発）/ 'broken'（遅れて砕ける）
+  function barrierAt(node, mode, size) {
+    const p = centerOf(node);
+    const d = place('barrier ' + mode, p.x, p.y, size || 120, null);
+    d.innerHTML = BARRIER_SVG;
+    reap(d, 1100);
+    if (mode === 'hold') sound.barrier();
+    if (mode === 'broken') { sound.crack(); burst(node, '#bff3fb', 14); }
+    return d;
+  }
+
+  function deflectAt(node, barrierEl) {
+    if (barrierEl) barrierEl.classList.add('hit');
+    ring(node, '#ffffff');
+    burst(node, '#bff3fb', 14);
+    flash('#4fd3e8', 0.2);
+    sound.deflect();
+  }
+
+  // 属性ごとの着弾演出
+  function elementImpact(node, elem, opt = {}) {
+    const big = !!opt.big;
+    const p = centerOf(node);
+    ring(node, elem.color);
+    burst(node, elem.color, big ? 26 : 16);
+
+    if (elem.element === '炎') {
+      for (let i = 0; i < (big ? 16 : 10); i++) {
+        const d = place('blaze', p.x, p.y);
+        d.style.setProperty('--dx', ((Math.random() * 2 - 1) * (big ? 62 : 44)) + 'px');
+        d.style.setProperty('--dy', ((Math.random() * 2 - 1) * 22) + 'px');
+        d.style.animationDelay = Math.round(Math.random() * 140) + 'ms';
+        reap(d, 950);
+      }
+    } else if (elem.element === '雷') {
+      const h = Math.max(70, Math.min(p.y - 6, 300));
+      const d = place('bolt', p.x, p.y);
+      const seg = 7;
+      let path = 'M0,0';
+      for (let i = 1; i <= seg; i++) {
+        const y = (h / seg) * i;
+        const x = i === seg ? 0 : (Math.random() * 2 - 1) * 17;
+        path += ` L${x.toFixed(1)},${y.toFixed(1)}`;
+      }
+      d.innerHTML = `<svg width="56" height="${h}" viewBox="-28 0 56 ${h}" xmlns="http://www.w3.org/2000/svg">
+        <path d="${path}" fill="none" stroke="#fff8c0" stroke-width="${big ? 5 : 3.2}" stroke-linejoin="round"/>
+        <path d="${path}" fill="none" stroke="#fff" stroke-width="${big ? 2 : 1.3}" stroke-linejoin="round"/>
+      </svg>`;
+      reap(d, 480);
+      flash('#fff8c0', big ? 0.42 : 0.26);
+    } else {
+      [0, 110, 220].forEach(delay => setTimeout(() => ring(node, elem.color), delay));
+      for (let i = 0; i < (big ? 18 : 12); i++) {
+        const ang = (Math.PI * 2 * i) / (big ? 18 : 12);
+        const dist = 46 + Math.random() * 54;
+        const d = place('droplet', p.x, p.y);
+        d.style.setProperty('--dx', (Math.cos(ang) * dist).toFixed(1) + 'px');
+        d.style.setProperty('--dy', (Math.sin(ang) * dist - 12).toFixed(1) + 'px');
+        reap(d, 720);
+      }
+    }
+  }
+
+  // 詠唱 → 飛翔 →（着弾）。onImpact は着弾の瞬間に呼ばれる。
+  function castSpell(from, to, elem, opt, onImpact) {
+    from.classList.remove('cast');
+    void from.offsetWidth;
+    from.classList.add('cast');
+    magicCircle(from, elem.color, opt);
+    sound.cast(!!opt.big);
+    setTimeout(() => flyOrb(from, to, elem, opt), CAST_MS);
+    if (onImpact) later(onImpact, CAST_MS + TRAVEL_MS);
+    return CAST_MS + TRAVEL_MS;
   }
 
   /* ============================================================
@@ -1043,18 +1348,23 @@
     const correct = action === (G.playerIsAttacker ? 'attack' : 'shield');
     if (action && correct) G.reactTimes.push(t);
 
+    G.nextDelay = 900;
     if (G.playerIsAttacker) resolveAttack(action, correct, t);
     else resolveDefense(action, correct, t);
 
     renderHud();
-    later(afterResolve, 900);
+    later(afterResolve, G.nextDelay);
   }
+
+  const IMPACT_AT = () => CAST_MS + TRAVEL_MS;
 
   /* --- プレイヤーが攻撃側 ------------------------------------ */
   function resolveAttack(action, correct, t) {
     const elem = G.myHand ? HANDS[G.myHand] : HANDS.rock;
 
-    if (!action) {
+    if (!action) {           // 時間切れ：魔法陣が立ち消える
+      G.nextDelay = 950;
+      magicCircle(el.handMe, elem.color, { fizzle: true });
       banner('よそ見…', '#8b86a3');
       setCaller('魔力が霧散した');
       sound.whiff();
@@ -1062,6 +1372,8 @@
       return;
     }
     if (!correct) {          // 攻撃すべき場面で結界を張った＝お手つき
+      G.nextDelay = 1000;
+      barrierAt(el.handMe, 'fizzle');
       banner('お手つき！', '#8b86a3');
       setCaller('無駄な結界…');
       sound.whiff();
@@ -1069,11 +1381,19 @@
       damageMe(6, false);
       return;
     }
+
+    setCaller(`${elem.icon} ${elem.element}の魔法！`);
+
     if (t >= G.foeReact) {   // 相手の結界の方が速い
-      banner('ふせがれた', '#4fd3e8');
-      setCaller('結界に阻まれた！');
-      ring(el.enemyFace, '#4fd3e8');
-      sound.guard();
+      G.nextDelay = IMPACT_AT() + 640;
+      let foeShield = null;
+      setTimeout(() => { foeShield = barrierAt(el.enemyFace, 'hold', 96); },
+                 Math.max(0, IMPACT_AT() - 190));
+      castSpell(el.handMe, el.enemyFace, elem, {}, () => {
+        deflectAt(el.enemyFace, foeShield);
+        banner('ふせがれた', '#4fd3e8');
+        setCaller('結界に阻まれた！');
+      });
       breakCombo();
       return;
     }
@@ -1087,79 +1407,111 @@
     if (isCrit) dmg = Math.round(dmg * 1.7);
     if (isBig) dmg = Math.round(dmg * 2.4);
 
-    damageFoe(dmg, { crit: isCrit, big: isBig, elem });
+    if (isBig) setCaller(`${elem.icon} ${elem.element}の大魔法！`);
+    G.nextDelay = IMPACT_AT() + (isBig ? 780 : 640);
 
-    G.combo++;
-    G.maxCombo = Math.max(G.maxCombo, G.combo);
-    G.score += dmg * (1 + G.combo * 0.1);
-    if (isCrit) G.crits++;
-
-    if (isBig) {
-      G.charge = 0;
-      banner('大 魔 法 ！', '#d9a441');
-      setCaller(`${elem.icon} ${elem.element}の大魔法！`);
-    } else {
-      G.charge = Math.min(MAX_CHARGE, G.charge + 1);
-      if (G.charge === MAX_CHARGE) sound.charge();
-      banner(isCrit ? 'クリティカル！' : 'ヒット！', isCrit ? '#d9a441' : elem.color);
-      setCaller(`${elem.icon} ${elem.element}の魔法が命中`);
-    }
+    // 戦績と魔力は着弾の瞬間に動かす（damageFoe が renderHud を呼ぶ）
+    castSpell(el.handMe, el.enemyFace, elem, { big: isBig }, () => {
+      elementImpact(el.enemyFace, elem, { big: isBig });
+      G.combo++;
+      G.maxCombo = Math.max(G.maxCombo, G.combo);
+      G.score += dmg * (1 + G.combo * 0.1);
+      if (isCrit) G.crits++;
+      G.charge = isBig ? 0 : Math.min(MAX_CHARGE, G.charge + 1);
+      damageFoe(dmg, { crit: isCrit, big: isBig, elem });
+      if (isBig) {
+        banner('大 魔 法 ！', '#d9a441');
+      } else {
+        banner(isCrit ? 'クリティカル！' : 'ヒット！', isCrit ? '#d9a441' : elem.color);
+        setCaller(`${elem.icon} ${elem.element}の魔法が命中`);
+        if (G.charge === MAX_CHARGE) later(() => sound.charge(), 260);
+      }
+    });
   }
 
   /* --- プレイヤーが防御側 ------------------------------------ */
   function resolveDefense(action, correct, t) {
-    if (!action) {
-      banner('直 撃', '#e0483c');
-      setCaller('魔法をまともに受けた…');
+    const foeElem = HANDS[G.foeHand] || HANDS.rock;
+
+    if (!action) {           // 何も押さず直撃
+      G.nextDelay = IMPACT_AT() + 660;
+      castSpell(el.enemyFace, el.handMe, foeElem, {}, () => {
+        elementImpact(el.handMe, foeElem);
+        banner('直 撃', '#e0483c');
+        setCaller('魔法をまともに受けた…');
+        damageMe(13, true);
+      });
       breakCombo();
-      damageMe(13, true);
       return;
     }
     if (!correct) {          // 守るべき場面で杖を振った＝お手つき
-      banner('お手つき！', '#e0483c');
-      setCaller('隙だらけ！');
+      G.nextDelay = IMPACT_AT() + 680;
+      const myElem = G.myHand ? HANDS[G.myHand] : HANDS.rock;
+      magicCircle(el.handMe, myElem.color, { fizzle: true });   // 空振りの詠唱
+      sound.whiff();
+      castSpell(el.enemyFace, el.handMe, foeElem, {}, () => {
+        elementImpact(el.handMe, foeElem);
+        banner('お手つき！', '#e0483c');
+        setCaller('隙だらけ！');
+        damageMe(17, true);
+      });
       breakCombo();
-      damageMe(17, true);
       return;
     }
     if (t >= G.foeReact) {   // 結界が間に合わない
-      banner('間に合わない！', '#e0483c');
-      setCaller('結界が遅れた…');
+      G.nextDelay = IMPACT_AT() + 700;
+      castSpell(el.enemyFace, el.handMe, foeElem, {}, () => {
+        elementImpact(el.handMe, foeElem);
+        banner('間に合わない！', '#e0483c');
+        setCaller('結界が遅れた…');
+        damageMe(12, true);
+        setTimeout(() => barrierAt(el.handMe, 'broken'), 170);  // 遅れて張られ、砕ける
+      });
       breakCombo();
-      damageMe(12, true);
       return;
     }
 
-    // ガード成功
-    ring(el.handMe, '#4fd3e8');
-    burst(el.handMe, '#4fd3e8', 12);
-    sound.guard();
+    // ガード成功：押した瞬間に結界を展開し、飛んできた魔法を受ける
+    const shield = barrierAt(el.handMe, 'hold');
+    setCaller('結 界 展 開');
     G.combo++;
     G.maxCombo = Math.max(G.maxCombo, G.combo);
     G.score += 12;
 
-    const margin = 1 - t / G.foeReact;
-    if (margin > 0.5) {      // 余裕をもって張れたらカウンター
-      banner('カウンター結界！', '#4fd3e8');
-      setCaller('弾き返した！');
+    const counter = (1 - t / G.foeReact) > 0.5;   // 余裕をもって張れたら弾き返す
+    if (counter) {
       G.charge = Math.min(MAX_CHARGE, G.charge + 1);
-      later(() => damageFoe(9, { crit: false, big: false, elem: HANDS.paper, quiet: true }), 180);
       G.score += 20;
-    } else {
-      banner('ガード！', '#4fd3e8');
-      setCaller('結界で受けきった');
     }
+    G.nextDelay = IMPACT_AT() + (counter ? 900 : 620);
+
+    castSpell(el.enemyFace, el.handMe, foeElem, {}, () => {
+      deflectAt(el.handMe, shield);
+      if (counter) {
+        banner('カウンター結界！', '#4fd3e8');
+        setCaller('弾き返した！');
+        renderHud();
+        setTimeout(() => flyOrb(el.handMe, el.enemyFace, foeElem), 90);
+        later(() => {
+          elementImpact(el.enemyFace, foeElem);
+          damageFoe(9, { elem: foeElem, quiet: true });
+        }, 90 + TRAVEL_MS);
+      } else {
+        banner('ガード！', '#4fd3e8');
+        setCaller('結界で受けきった');
+      }
+    });
   }
 
   function breakCombo() { G.combo = 0; }
 
-  function damageFoe(dmg, opt) {
+  // 着弾の絵づくりは elementImpact 側が担当し、ここは damage の適用と手応えだけ。
+  function damageFoe(dmg, opt = {}) {
     G.foeHp -= dmg;
     el.enemyFace.classList.remove('hurt');
     void el.enemyFace.offsetWidth;
     el.enemyFace.classList.add('hurt');
     floatNum(el.enemyFace, '-' + dmg, opt.crit || opt.big ? '#d9a441' : '#fff');
-    burst(el.enemyFace, opt.elem ? opt.elem.color : '#fff', opt.big ? 28 : 18);
     if (!opt.quiet) {
       shake();
       flash(opt.elem ? opt.elem.color : '#fff', opt.big ? 0.5 : 0.28);
@@ -1174,7 +1526,6 @@
     if (real) {
       shake();
       flash('#e0483c', 0.42);
-      burst(el.handMe, '#e0483c', 16);
       sound.damaged();
     }
     G.charge = Math.max(0, G.charge - 1);
