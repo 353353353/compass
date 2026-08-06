@@ -27,7 +27,8 @@
   html, body { height: 100%; }
 
   body {
-    font-family: 'Shippori Mincho', serif;
+    font-family: 'Shippori Mincho', 'Hiragino Mincho ProN', 'Yu Mincho', 'YuMincho',
+                 'Noto Serif JP', serif;
     background: var(--ink);
     color: var(--paper);
     min-height: 100%;
@@ -222,7 +223,7 @@
   .bar.low > i { background: linear-gradient(90deg, #e0483c, #8b1f1f); animation: pulseLow .7s ease-in-out infinite; }
   @keyframes pulseLow { 0%,100% { opacity: 1; } 50% { opacity: .45; } }
   .bar-num {
-    font-family: 'DM Mono', monospace;
+    font-family: 'DM Mono', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
     font-size: 10px; color: var(--muted); letter-spacing: .05em;
   }
 
@@ -358,7 +359,7 @@
   .key:not(:disabled):active { transform: scale(.95); background: rgba(217,164,65,.2); }
   .key .glyph { font-size: 28px; line-height: 1; }
   .key .lbl { font-size: 12px; letter-spacing: .12em; }
-  .key .sub { font-size: 8px; letter-spacing: .1em; color: var(--muted); font-family: 'DM Mono', monospace; }
+  .key .sub { font-size: 8px; letter-spacing: .1em; color: var(--muted); font-family: 'DM Mono', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace; }
   .key.picked { border-color: var(--gold); background: rgba(217,164,65,.24); }
 
   .key.atk { border-color: rgba(224,87,143,.5); }
@@ -386,7 +387,7 @@
     font-size: 12px; letter-spacing: .1em;
   }
   .stat-row:last-child { border-bottom: none; }
-  .stat-row b { font-family: 'DM Mono', monospace; font-size: 16px; color: var(--gold); font-weight: 500; }
+  .stat-row b { font-family: 'DM Mono', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace; font-size: 16px; color: var(--gold); font-weight: 500; }
   .rank { font-size: 13px; letter-spacing: .2em; color: var(--cyan); }
 
   /* ============ エフェクト層 ============ */
@@ -397,7 +398,7 @@
 
   .float-num {
     position: absolute;
-    font-family: 'DM Mono', monospace;
+    font-family: 'DM Mono', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
     font-weight: 500;
     font-size: 30px;
     text-shadow: 0 2px 12px rgba(0,0,0,.9);
@@ -589,6 +590,17 @@
     100% { transform: translateY(0) scale(1); }
   }
   .enemy-face.cast { animation: castNudge .34s ease-out; }
+
+  /* 装飾的な動きは止めるが、攻防の判断材料になる演出は残す */
+  @media (prefers-reduced-motion: reduce) {
+    body::after { animation: none; }
+    .title-seal, .title-seal > span { animation: none; }
+    .shake { animation: none; }
+    .bar.low > i { animation: none; }
+    .charge.full { animation: none; }
+    .hand.cast, .enemy-face.cast { animation: none; }
+    .bar > i { transition: none; }
+  }
 
   @media (max-height: 680px) {
     .hand { width: 68px; height: 68px; font-size: 34px; }
