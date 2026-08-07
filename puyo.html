@@ -253,8 +253,14 @@
   let queue = [];
   let colorCount = 4;
 
+  // iframe 内などでは localStorage が例外を投げることがあるので必ず包む
+  const store = {
+    get(key) { try { return localStorage.getItem(key); } catch (e) { return null; } },
+    set(key, val) { try { localStorage.setItem(key, val); } catch (e) { /* 保存できなくても続行 */ } }
+  };
+
   let score = 0, chain = 0, maxChain = 0, level = 1, placed = 0;
-  let best = Number(localStorage.getItem('puyo.best') || 0);
+  let best = Number(store.get('puyo.best') || 0);
 
   let fallTimer = 0, lockTimer = 0, popTimer = 0;
   let softDrop = false;
@@ -497,7 +503,7 @@
   function gameOver() {
     mode = 'over';
     pair = null;
-    if (score > best) { best = score; localStorage.setItem('puyo.best', String(best)); }
+    if (score > best) { best = score; store.set('puyo.best', String(best)); }
     updateHud();
     ovTitle.textContent = 'ゲームオーバー';
     ovSub.innerHTML = 'SCORE ' + score + ' / 最大 ' + maxChain + ' 連鎖<br>スペース / タップでもう一度';
@@ -831,6 +837,9 @@
   document.addEventListener('keyup', (e) => {
     if (e.key === 'ArrowDown') softDrop = false;
   });
+
+  // iframe に埋め込まれている場合、クリックで自分にフォーカスを移さないとキー入力が届かない
+  document.addEventListener('pointerdown', () => { try { window.focus(); } catch (e) {} });
 
   overlay.addEventListener('click', primaryAction);
 
