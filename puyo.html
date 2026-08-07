@@ -55,7 +55,8 @@
     background: var(--field);
     box-shadow: 6px 6px 0 rgba(26,26,46,0.18);
   }
-  #field { display: block; width: 100%; height: auto; }
+  /* 盤面上のスワイプでページが動かないようにする */
+  #field { display: block; width: 100%; height: auto; touch-action: none; }
 
   .overlay {
     position: absolute; inset: 0;
@@ -189,6 +190,12 @@
       <dt>Space</dt><dd>一気に落とす</dd>
       <dt>P</dt><dd>一時停止</dd>
       <dt>R</dt><dd>やり直し</dd>
+    </dl>
+    <h3 style="margin-top:16px">す ま ほ の ば あ い</h3>
+    <dl>
+      <dt>ボタン</dt><dd>下のパッドで移動・回転・落下</dd>
+      <dt>タップ</dt><dd>盤面をタップで回転</dd>
+      <dt>スワイプ</dt><dd>横で移動 / 下ではやく落とす</dd>
     </dl>
   </div>
 </div>
