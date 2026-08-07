@@ -47,16 +47,17 @@
 
   .stage { display: flex; gap: 14px; align-items: flex-start; justify-content: center; }
 
+  /* 幅は JS が canvas に直接指定する（親の実測値に依存させない） */
   .field-wrap {
     position: relative;
     flex: 0 0 auto;
-    width: min(58vw, 264px);
     border: 2px solid var(--ink);
     background: var(--field);
     box-shadow: 6px 6px 0 rgba(26,26,46,0.18);
+    line-height: 0;
   }
   /* 盤面上のスワイプでページが動かないようにする */
-  #field { display: block; width: 100%; height: auto; touch-action: none; }
+  #field { display: block; touch-action: none; }
 
   .overlay {
     position: absolute; inset: 0;
@@ -105,7 +106,6 @@
 
   @media (max-width: 430px) {
     .stage { gap: 10px; }
-    .field-wrap { width: min(54vw, 240px); }
     .panel { min-width: 0; gap: 8px; }
     .card { padding: 8px 9px; }
     .card .label { font-size: 9px; letter-spacing: 0.14em; }
@@ -122,10 +122,24 @@
 </style>
 </head>
 <body>
+<script>
+// 何かの理由でゲームが起動しなかったとき、黙って固まらずに画面へ理由を出す
+window.addEventListener('error', function (e) {
+  try {
+    var ov = document.getElementById('overlay');
+    var t = document.getElementById('ovTitle');
+    var s = document.getElementById('ovSub');
+    if (!ov || !t || !s) return;
+    t.textContent = '起動できませんでした';
+    s.textContent = (e.message || 'unknown error') + ' (' + (e.lineno || '?') + ')';
+    ov.classList.add('show');
+  } catch (_) {}
+});
+</script>
 <div class="container">
   <div class="header">
     <h1>ぷ よ ぷ よ</h1>
-    <p>CHAIN &amp; POP</p>
+    <p>CHAIN &amp; POP <span style="opacity:0.45">v4</span></p>
   </div>
 
   <div class="stage">
@@ -777,14 +791,27 @@
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   }
 
+  // セルの大きさはビューポートから直接決める。
+  // 親要素の実測値に頼ると、レイアウト確定前に呼ばれた環境（一部の
+  // アプリ内ブラウザやファイルプレビュー）で 0 になり盤面が潰れるため。
   function layout() {
-    const wrap = fieldCv.parentElement;
-    const w = wrap.clientWidth || 200;
-    CELL = Math.max(18, w / COLS);   // CSS 幅にぴったり合わせる（整数でなくてよい）
-    const dpr = window.devicePixelRatio || 1;
-    fieldCv.width = Math.round(CELL * COLS * dpr);
-    fieldCv.height = Math.round(CELL * ROWS * dpr);
+    const vw = Math.max(240, document.documentElement.clientWidth || window.innerWidth || 360);
+    const vh = Math.max(320, window.innerHeight || document.documentElement.clientHeight || 640);
+
+    const avail = Math.min(vw - 24, 560);
+    const fieldW = vw < 520 ? avail * 0.55 : Math.min(264, avail * 0.5);
+    const byH = vh * 0.72 / ROWS;
+    CELL = Math.max(16, Math.min(46, Math.floor(Math.min(fieldW / COLS, byH))));
+
+    const dpr = Math.min(3, window.devicePixelRatio || 1);
+    const cssW = CELL * COLS, cssH = CELL * ROWS;
+    fieldCv.width = Math.round(cssW * dpr);
+    fieldCv.height = Math.round(cssH * dpr);
+    // CSS 側の高さも必ず明示する（height:auto の解釈に依存しない）
+    fieldCv.style.width = cssW + 'px';
+    fieldCv.style.height = cssH + 'px';
     fctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
     // ずれはピクセル単位なのでサイズが変わったら落下中の分は着地させる
     for (let y = 0; y < ROWS; y++) for (let x = 0; x < COLS; x++) offset[y][x] = 0;
     drawNext();
@@ -910,6 +937,11 @@
   }, { passive: true });
 
   window.addEventListener('resize', layout);
+  window.addEventListener('orientationchange', layout);
+  // 表示が確定するのが遅い環境向けに、少し待ってから測り直す
+  window.addEventListener('load', layout);
+  setTimeout(layout, 300);
+  setTimeout(layout, 1200);
 
   // ---------------------------------------------------------------- 起動
   resetBoard();
