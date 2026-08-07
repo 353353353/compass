@@ -41,6 +41,14 @@
 
   .container { max-width: 560px; margin: 0 auto; position: relative; z-index: 1; }
 
+  .noscript {
+    position: relative; z-index: 2;
+    max-width: 560px; margin: 0 auto 16px;
+    border: 2px solid var(--bad, #8b2020);
+    background: #fff4f0; color: #6b1a1a;
+    padding: 14px 16px; font-size: 13px; line-height: 1.8;
+  }
+
   .header { text-align: center; padding: 8px 0 16px; border-bottom: 2px solid var(--ink); margin-bottom: 18px; }
   .header h1 { font-size: 26px; font-weight: 800; letter-spacing: 0.18em; }
   .header p { font-size: 11px; color: var(--muted); letter-spacing: 0.24em; margin-top: 6px; font-family: 'DM Mono', monospace; }
@@ -136,6 +144,14 @@ window.addEventListener('error', function (e) {
   } catch (_) {}
 });
 </script>
+<noscript>
+  <div class="noscript">
+    <strong>このビューアーは JavaScript を実行しません。</strong>
+    ぷよぷよは動かせません。ファイルを保存してから Safari や Chrome などの
+    ブラウザで開いてください。
+  </div>
+</noscript>
+
 <div class="container">
   <div class="header">
     <h1>ぷ よ ぷ よ</h1>
@@ -146,8 +162,9 @@ window.addEventListener('error', function (e) {
     <div class="field-wrap">
       <canvas id="field"></canvas>
       <div class="overlay show" id="overlay">
-        <h2 id="ovTitle">ぷよぷよ</h2>
-        <div class="sub" id="ovSub">同じ色を4つつなげて消そう<br>スペース / タップで開始</div>
+        <!-- この文言は起動時に JS が書き換える。出たままなら JS が動いていない -->
+        <h2 id="ovTitle">読み込み中…</h2>
+        <div class="sub" id="ovSub">この表示のまま変わらない場合は、<br>ブラウザで開き直してください</div>
       </div>
     </div>
 
@@ -755,7 +772,7 @@ window.addEventListener('error', function (e) {
       fctx.globalAlpha = Math.max(0, 1 - Math.pow(k, 3));
       fctx.textAlign = 'center';
       fctx.textBaseline = 'middle';
-      fctx.font = '800 ' + Math.round(CELL * 0.86) + 'px "Shippori Mincho", serif';
+      fctx.font = '800 ' + Math.round(CELL * 0.86) + 'px "Hiragino Mincho ProN", "Yu Mincho", "Shippori Mincho", serif';
       const ty = H * 0.42 - k * CELL * 1.6;
       fctx.lineWidth = Math.max(3, CELL * 0.12);
       fctx.strokeStyle = '#1a1a2e';
@@ -944,9 +961,16 @@ window.addEventListener('error', function (e) {
   setTimeout(layout, 1200);
 
   // ---------------------------------------------------------------- 起動
+  function showReady() {
+    ovTitle.textContent = 'ぷよぷよ';
+    ovSub.innerHTML = '同じ色を4つつなげて消そう<br>スペース / タップで開始';
+    overlay.classList.add('show');
+  }
+
   resetBoard();
   fillQueue();
   layout();
+  showReady();
   updateHud();
   requestAnimationFrame((t) => { lastTime = t; tick(t); });
 })();
